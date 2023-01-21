@@ -1,0 +1,22 @@
+**/__pycache__/
+*.log
+.sgex.log*
+
+/.env
+/.venv/
+/.venv-dev/
+
+/config.yml
+data/
+secrets/
+environment/*
+!environment/settings.py
+
+# delete this group of lines to track custom content in git
+assets/*
+call/*
+components/*
+layout/*
+markdown/*
+pages/*
+utils/*

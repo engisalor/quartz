@@ -1,0 +1,119 @@
+/* Adapted from: https://community.plotly.com/t/sidebar-with-icons-expands-on-hover-and-other-cool-sidebars/67318 */
+
+@media (min-width: 25em) {
+
+  /* This creates a skinny side bar fixed to the left of the page */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 5rem;
+    padding: 2rem 1rem;
+    background-color: white;
+    z-index: 1050;
+    transition: width 0.1s ease-in-out;
+  }
+
+  /* when the user hovers on the sidebar, expand it */
+  .sidebar:hover {
+    width: 16rem;
+  }
+
+  /* make sure the contents of the navlink don't wrap when navbar collapses */
+  .sidebar .nav-link {
+    width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  /* fix the width of the icons */
+  .sidebar .nav-link i {
+    width: 1rem;
+  }
+
+  /* hide the navlink labels by default */
+  .sidebar .nav-link span {
+    visibility: hidden;
+    opacity: 1;
+    transition: opacity 0.1s ease-in-out;
+  }
+
+  /* when the sidebar is hovered, reveal the labels */
+  .sidebar:hover .nav-link span {
+    visibility: visible;
+    opacity: 1;
+    color:#27255f;
+
+  }
+
+  /* hide the nav-pills by default */
+  .sidebar .nav-pills .nav-link.active {
+    visibility: hidden;
+    opacity: 1;
+    transition: opacity 0.1s ease-in-out;
+  }
+
+  /* when the sidebar is hovered, reveal the active nav-pill */
+  .sidebar:hover .nav-pills .nav-link.active {
+    visibility: visible;
+    background-color: #c9e3f2;
+    opacity: 1;
+  }
+
+  /* make sure the contents don't wrap when the sidebar is collapsed.*/
+  .sidebar-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  /* position the header relative to the logo and hide by default */
+  .sidebar-header {
+    opacity: 0;
+    margin-left: 1rem;
+    margin-bottom: 0;
+  }
+
+  /* reveal the header when the sidebar is toggled */
+  .sidebar:hover .sidebar-header {
+    opacity: 1;
+  }
+
+  /* show bars when sidebar is minimized */
+  .sidebar-bars {
+    display: flex;
+    justify-content: center;
+    align-items: bottom;
+    color: #27255f;
+  }
+
+  /* hide bars when the sidebar is toggled */
+  .sidebar:hover .sidebar-bars i {
+    opacity: 0;
+  }
+
+  /* shrink icon when sidebar is minimized */
+  .sidebar-icon {
+    display: flex;
+    justify-content: center;
+    width: 5rem;
+  }
+
+  /* grow icon when the sidebar is toggled */
+  .sidebar:hover .sidebar-icon {
+    display: flex;
+    transition: width 0.1s ease-in-out;
+    justify-content: center;
+    width: 15rem;
+  }
+
+  /* position the content relative to the collapsed sidebar */
+  #page-content {
+    margin-left: 6rem;
+    margin-right: 1rem;
+    padding: 1rem 1rem;
+  }
+}

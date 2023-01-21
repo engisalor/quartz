@@ -1,0 +1,6 @@
+wordlist:
+  type: wordlist
+  call:
+    corpname: preloaded/susanne
+    wltype: simple
+    wlattr: lemma

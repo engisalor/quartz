@@ -1,0 +1,7 @@
+/* Override Dash font to use Cerulean: refer to https://cdn.jsdelivr.net/npm/bootswatch@5.2.3/dist/cerulean/bootstrap.css */
+* {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: #5065A8; }
