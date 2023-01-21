@@ -25,7 +25,7 @@ Get started by cloning/forking this repo. Also check out these links for informa
 Run the following snippet to copy default configuration files. Modify these files as needed to fit your project.
 
 ```bash
-cp -i builtin/config/.env .env-test
+cp -i builtin/config/.env .env
 make get_started
 ```
 

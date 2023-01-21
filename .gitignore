@@ -12,7 +12,7 @@ secrets/
 environment/*
 !environment/settings.py
 
-# delete this group of lines to track custom content in git
+# comment this group of lines to track custom content in git
 assets/*
 call/*
 components/*
