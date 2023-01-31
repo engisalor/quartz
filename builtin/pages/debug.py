@@ -1,11 +1,11 @@
 import pathlib
 
 import dash
+import sgex
 from dash import html
 from dash.dependencies import Input, Output
 
-from builtin.components.aio import MarkdownFileAIO
-from builtin.utils import decorator, sgex
+from builtin.utils import decorator
 from builtin.version import version
 from environment.settings import NOSKE_SERVER_NAME
 
@@ -25,8 +25,6 @@ layout = html.Div(
         html.H2("API connections"),
         html.Button("NoSkE", id="check-noske"),
         html.Div(id="check-noske-out", children=""),
-        html.Button("SkE", id="check-ske"),
-        html.Div(id="check-ske-out", children=""),
     ]
 )
 
@@ -37,16 +35,15 @@ layout = html.Div(
     prevent_initial_call=True,
 )
 def check_noske(n_clicks):
-    return sgex.check_call(n_clicks, NOSKE_SERVER_NAME, sgex.debug_noske)
-
-
-@dash.callback(
-    Output("check-ske-out", "children"),
-    Input("check-ske", "n_clicks"),
-    prevent_initial_call=True,
-)
-def check_ske(n_clicks):
-    return sgex.check_call(n_clicks, "ske", sgex.debug_ske)
+    params = {"debug": {"type": "corp_info", "call": {"corpname": "susanne"}}}
+    job = sgex.Call(params, server=NOSKE_SERVER_NAME, output="json", loglevel="debug")
+    return html.Div(
+        [
+            html.P(f"Clicks: {n_clicks}"),
+            html.P(f"{str(params)}"),
+            html.P(f"{str(job.data)}"),
+        ]
+    )
 
 
 @dash.callback(
