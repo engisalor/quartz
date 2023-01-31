@@ -19,7 +19,7 @@ class MarkdownFileAIO(html.Div):
         self,
         file: str,
         dir: str = "markdown",
-        markdown_props: dict = None,
+        markdown_props={"style": {"max-width": "800px"}},
         aio_id: str = None,
     ):
         """Displays markdown content from a file.
