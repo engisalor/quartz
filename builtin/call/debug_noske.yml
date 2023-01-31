@@ -1,6 +1,0 @@
-wordlist:
-  type: wordlist
-  call:
-    corpname: susanne
-    wltype: simple
-    wlattr: lemma
