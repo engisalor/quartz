@@ -1,0 +1,17 @@
+id:
+  type: wordlist
+  call:
+    corpname:
+    wlattr:
+    wlmaxitems: 50
+    wlsort: frq
+    wlpat: .*
+    wlminfreq: 1
+    wlicase: 1
+    wlmaxfreq: 0
+    wltype: simple
+    include_nonwords: 1
+    random: 0
+    relfreq: 1
+    reldocf: 0
+    wlpage: 1

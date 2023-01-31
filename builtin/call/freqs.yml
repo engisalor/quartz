@@ -1,0 +1,7 @@
+id:
+  type: freqs
+  call:
+    corpname:
+    q:
+    fcrit:
+    freq_sort: freq
