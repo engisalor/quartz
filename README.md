@@ -4,7 +4,7 @@
 
 Quartz is a dashboard for visualizing corpus data from Sketch Engine servers. It's built with Python and Plotly's Dash framework and is deployable as a Docker container.
 
-To use Quartz you'll need a compiled Sketch Engine corpus (if using locally) and/or API access to a Sketch Engine server (for making external queries). This repo is oriented toward developers and researchers wanting to automate data visualization and prepare customizable apps for corpus linguistics.
+This repo is oriented toward developers and researchers wanting to automate custom data visualization tasks for corpus linguistics. To use Quartz you'll need a compiled Sketch Engine corpus (if using locally) and/or API access to a Sketch Engine server (for making external queries - under development).
 
 Quartz is designed as an application template to allow for easy adaptation, though it can be used as-is with its built-in visualizations. These features are meant to be a common resource for developing corpus visualization methods (contributions are welcome). Some modifications may be needed depending on how your data is structured.
 
@@ -40,22 +40,19 @@ Environment variables are managed in these files.
 
 #### Virtual environments
 
-Add a Python virtual environment for Quartz dependencies and another for development purposes if you plan to contribute to Quartz.
+Add a Python virtual environment and install Quartz dependencies:
 
 ```bash
-# for Quartz
 python3 -m venv .venv
 source $PWD/.venv/bin/activate
 pip install --upgrade pip
 pip install -r requirements.txt
+```
 
-# for development
-python3 -m venv .venv-dev
-source $PWD/.venv-dev/bin/activate
-pip install --upgrade pip
-pip install pre-commit
-pip install -r requirements.txt
-pre-commit install
+This is the pip command for installing packages from scratch:
+
+```python
+pip install dash dash[celery] dash[diskcache] flask gunicorn pandas plotly pre-commit python-dotenv pyyaml requests sgex
 ```
 
 #### SGEX config
@@ -84,9 +81,9 @@ Run `make quartz` to start Quartz, and to stop the container run `docker stop qu
 
 ### Developing Quartz
 
-#### Notes 
+#### Notes
 
-- 
+-
 - `.dockerignore` excludes everything by default
 
 ## About
