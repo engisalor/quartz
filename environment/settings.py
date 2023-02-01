@@ -4,6 +4,8 @@ from os.path import dirname, join
 
 from dotenv import load_dotenv
 
+from builtin.utils import io
+
 dotenv_path = join(dirname(__file__), os.getenv("ENVIRONMENT_FILE"))
 load_dotenv(dotenv_path=dotenv_path, override=True)
 
@@ -34,3 +36,10 @@ NOSKE_SERVER_NAME = os.environ.get("NOSKE_SERVER_NAME")
 ASSETS_DIR = os.environ.get("ASSETS_DIR")
 PAGES_DIR = os.environ.get("PAGES_DIR")
 LAYOUT_MODULE = os.environ.get("LAYOUT_MODULE")
+CORPORA_FILE = os.environ.get("CORPORA_FILE")
+
+# corpora
+if CORPORA_FILE:
+    corpora = io.load_yaml(CORPORA_FILE)
+else:
+    corpora = None
