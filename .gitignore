@@ -2,6 +2,7 @@
 *.log
 .sgex.log*
 
+/.cache
 /.env
 /.venv/
 /.venv-dev/
