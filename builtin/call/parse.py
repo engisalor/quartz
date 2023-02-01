@@ -99,7 +99,10 @@ def clean_items(items, item_keys=["Word", "frq", "rel", "fpm"]):
 def clean_heads(heads):
     """Extracts each block's fcrit attribute: ``head[0]["n"]``."""
 
-    return [head[0].get("n") for head in heads]
+    if len([x for x in heads if x]):
+        return [head[0].get("n") for head in heads]
+    else:
+        return None
 
 
 def response_to_df(response: dict):
@@ -111,19 +114,22 @@ def response_to_df(response: dict):
 
     # extract data from response
     blocks = response.get("Blocks", [])
-    heads = clean_heads([block["Head"] for block in blocks])
-    items = clean_items([block["Items"] for block in blocks])
-    # combine extracted data
-    for b in range(len(blocks)):
-        for i in range(len(items[b])):
-            items[b][i]["attribute"] = heads[b]
-    # convert to DataFrame
-    df = pd.DataFrame.from_records([x for y in items for x in y])
-    # get specific values
-    df["arg"] = response.get("Desc", [])[0].get("arg", {})
-    df["nicearg"] = response.get("Desc", [])[0].get("nicearg", {})
-    df["corpname"] = response.get("request", {}).get("corpname", {})
-    return df
+    heads = clean_heads([block.get("Head") for block in blocks])
+    if not heads:
+        return pd.DataFrame()
+    else:
+        items = clean_items([block.get("Items") for block in blocks])
+        # combine extracted data
+        for b in range(len(blocks)):
+            for i in range(len(items[b])):
+                items[b][i]["attribute"] = heads[b]
+        # convert to DataFrame
+        df = pd.DataFrame.from_records([x for y in items for x in y])
+        # get specific values
+        df["arg"] = response.get("Desc", [])[0].get("arg", {})
+        df["nicearg"] = response.get("Desc", [])[0].get("nicearg", {})
+        df["corpname"] = response.get("request", {}).get("corpname", {})
+        return df
 
 
 class Freqs:
