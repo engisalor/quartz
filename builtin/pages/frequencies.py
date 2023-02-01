@@ -1,22 +1,31 @@
 import dash
 import plotly.express as px
 import sgex
-from dash import Input, Output, dcc, html
+from dash import Input, Output, dcc, get_app, html
+from flask_caching import Cache
 
 from builtin.call import parse
-from environment.settings import NOSKE_SERVER_NAME
+from builtin.components.aio.aio import MarkdownFileAIO
+from environment.settings import NOSKE_SERVER_NAME, cache_config
+
+app = get_app()
+cache = Cache(app.server, config=cache_config)
+
 
 dash.register_page(__name__)
 
 
 layout = html.Div(
     [
+        MarkdownFileAIO("frequencies", "builtin/markdown"),
+        html.Br(),
         dcc.Input(
             id="query-input",
             type="text",
             placeholder="Enter a word or phrase",
             debounce=True,
         ),
+        html.Br(),
         html.Div(children=dcc.Graph(), id="frequency-graph"),
     ]
 )
@@ -27,6 +36,7 @@ layout = html.Div(
     Input("query-input", "value"),
     prevent_initial_callback=True,
 )
+@cache.memoize()
 def update_output(input):
     if input:
         input = input.strip()
