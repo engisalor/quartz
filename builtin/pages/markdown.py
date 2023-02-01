@@ -1,7 +1,7 @@
 import dash
 from dash import html
 
-from builtin.components.aio import MarkdownFileAIO
+from builtin.components.aio.aio import MarkdownFileAIO
 
 dash.register_page(__name__)
 
