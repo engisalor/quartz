@@ -4,7 +4,8 @@ WORKDIR /code
 
 COPY requirements.txt /
 
-RUN pip install -r /requirements.txt \
+RUN pip install --upgrade pip \
+	&& pip install -r /requirements.txt \
 	&& rm -rf /root/.cache
 
 COPY ./ ./
