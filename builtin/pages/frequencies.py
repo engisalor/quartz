@@ -53,5 +53,22 @@ def update_output(input):
             sgex.Call(dt, server=NOSKE_SERVER_NAME, loglevel="debug")
 
         data = parse.Freqs([f"simple {query}" for query in queries])
-        fig = px.line(data.df, x="value", y="rel", color="nicearg")
-        return dcc.Graph(figure=fig)
+        if not data.df.empty:
+            fig_rel = px.line(
+                data.df, x="value", y="rel", color="nicearg", title="Relative frequency"
+            )
+            fig_fpm = px.line(
+                data.df,
+                x="value",
+                y="fpm",
+                color="nicearg",
+                title="Frequency per million",
+            )
+            return html.Div(
+                [
+                    dcc.Graph(figure=fig_rel),
+                    dcc.Graph(figure=fig_fpm),
+                ]
+            )
+        else:
+            return html.Div([html.Br(), html.P("Nothing found.")])
