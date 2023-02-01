@@ -44,10 +44,21 @@ class Corp_Info:
                 df = pd.concat([df, temp])
         return df
 
+    def get_sizes(self):
+        return pd.DataFrame(
+            {
+                "structure": [
+                    k.replace("count", "") for k in self.json["sizes"].keys()
+                ],
+                "size": [f"{int(v):,}" for v in self.json["sizes"].values()],
+            }
+        )
+
     def __init__(self, meta) -> pd.DataFrame:
         self.meta = meta
         self.json = get_responses(meta)[0]
         self.df = self.get_dfs()
+        self.sizes = self.get_sizes()
 
 
 class Wordlist:
