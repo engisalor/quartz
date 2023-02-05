@@ -5,3 +5,9 @@ id:
     q:
     fcrit:
     freq_sort: freq
+    fmaxitems: 500
+    fpage: 1
+    group: 0
+    showpoc: 1
+    showreltt: 1
+    showrel: 1
