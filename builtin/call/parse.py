@@ -1,3 +1,4 @@
+import hashlib
 import json
 import sqlite3 as sql
 
@@ -6,8 +7,22 @@ import pandas as pd
 from builtin.utils.convert import list_of_dict
 
 
-def get_responses(meta, db="data/sgex.db"):
-    """Gets response data with matching ``meta`` and parses JSON strings.
+def hash_calls(call_params: list):
+    """Returns a hash for each dict of call parameters supplied."""
+
+    if not isinstance(call_params, list):
+        call_params = [call_params]
+
+    hashes = []
+    for c in call_params:
+        call_json = json.dumps(c, sort_keys=True)
+        hash = hashlib.blake2b(call_json.encode()).hexdigest()[0:32]
+        hashes.append(hash)
+    return hashes
+
+
+def select_response_from_meta(meta, db="data/sgex.db"):
+    """Gets response data with matching ``meta`` strings.
 
     Args:
         meta: string or list of strings to select SQL rows.
@@ -19,12 +34,26 @@ def get_responses(meta, db="data/sgex.db"):
     v = ",".join(["?"] * len(meta))
     conn = sql.Connection(db)
     c = conn.cursor()
-    res = c.execute(
-        f"SELECT response FROM calls WHERE meta IN ({v}) AND error IS null",  # nosec
-        tuple(meta),
-    )
+    query = f"SELECT response FROM calls WHERE meta IN ({v}) AND error IS null"  # nosec
+    res = c.execute(query, tuple(meta))
     responses = res.fetchall()
     return [json.loads(x[0]) for x in responses]
+
+
+def select_response_by_hash(hashes: list, db="data/sgex.db") -> list:
+    """Gets response data for matching hashes.
+
+    Args:
+        calls: list of hashes corresponding to db call parameters.
+        db: SGEX database to select content from.
+    """
+
+    conn = sql.Connection(db)
+    c = conn.cursor()
+    v = ",".join(["?"] * len(hashes))
+    query = f"SELECT response FROM calls WHERE hash IN ({v}) AND error IS null"  # nosec
+    res = c.execute(query, tuple(hashes))
+    return [json.loads(x[0]) for x in res.fetchall()]
 
 
 class Corp_Info:
@@ -56,7 +85,7 @@ class Corp_Info:
 
     def __init__(self, meta) -> pd.DataFrame:
         self.meta = meta
-        self.json = get_responses(meta)[0]
+        self.json = select_response_from_meta(meta)[0]
         self.df = self.get_dfs()
         self.sizes = self.get_sizes()
 
@@ -65,7 +94,7 @@ class Wordlist:
     """Class for parsing ``wordlist`` API data."""
 
     def __init__(self, meta) -> pd.DataFrame:
-        responses = get_responses(meta)
+        responses = select_response_from_meta(meta)
 
         df = pd.DataFrame()
         for response in responses:
@@ -80,7 +109,7 @@ class Wordlist:
         self.df = df
 
 
-def clean_items(items, item_keys=["Word", "frq", "rel", "fpm"]):
+def clean_items(items, item_keys=["Word", "frq", "rel", "fpm", "reltt"]):
     """Extracts desired items from block and flattens ``Word`` values."""
 
     clean = []
@@ -136,7 +165,7 @@ class Freqs:
     """Reads SkE API response JSON data from DB and converts to a DataFrame."""
 
     def make_df(self):
-        responses = get_responses(self.meta, self.db)
+        responses = select_response_by_hash(self.call_hashes, self.db)
         df = pd.DataFrame()
         for response in responses:
             if response:
@@ -146,7 +175,7 @@ class Freqs:
             df.sort_values("value", inplace=True)
         return df
 
-    def __init__(self, meta, db="data/sgex.db") -> pd.DataFrame:
-        self.meta = meta
+    def __init__(self, call_hashes, db="data/sgex.db") -> pd.DataFrame:
+        self.call_hashes = call_hashes
         self.db = db
         self.df = self.make_df()
