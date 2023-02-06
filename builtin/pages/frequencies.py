@@ -8,7 +8,7 @@ from flask_caching import Cache
 
 import environment.settings as env
 from builtin.call import assemble, parse
-from builtin.components.aio.aio import MarkdownFileAIO
+from builtin.components.aio.aio import CollapsingContentAIO, MarkdownFileAIO
 
 app = get_app()
 cache = Cache(app.server, config=env.cache_config)
@@ -19,7 +19,12 @@ dash.register_page(__name__)
 
 layout = html.Div(
     [
-        MarkdownFileAIO("frequencies", "builtin/markdown"),
+        html.H1("Frequencies"),
+        html.P("Enter queries below and press enter to generate visualizations."),
+        html.Br(),
+        CollapsingContentAIO(
+            "User guide", [MarkdownFileAIO("frequencies", "builtin/markdown")]
+        ),
         html.Div(
             [
                 html.Div(
@@ -65,7 +70,12 @@ layout = html.Div(
                 "flex-wrap": "wrap",
             },
         ),
-        html.Div(children=dcc.Graph(), id="frequency-graph"),
+        html.Br(),
+        dcc.Loading(
+            id="loading",
+            children=[html.Div([html.Div(id="loading-output")])],
+            type="circle",
+        ),
     ]
 )
 
@@ -88,10 +98,6 @@ def make_corpus_attr_options(corpus):
     Input("corpora-picker", "value"),
     State("attribute-picker", "options"),
     State("attribute-picker", "value"),
-    background=True,
-    running=[
-        (Output("query-input", "disabled"), True, False),
-    ],
 )
 def update_attribute_radio(corpora, options, value):
     if len(corpora) > 1:
@@ -106,18 +112,8 @@ def update_attribute_radio(corpora, options, value):
         return options, value
 
 
-@cache.memoize()
-def make_graph(data: parse.Freqs, y="reltt"):
-    # df = data.df.query("corpname in @corpora")
-
-    # NOTE patch for hejuly2019_backup date formatting inconsistencies
-    # if attribute in ["date", "class.DATE"]:
-    #     df["value"] = [
-    #       x.strip() if not "-" in x else x[-4:].strip() for x in df["value"]
-    #       ]
-
+def make_graph(data: parse.Freqs, y):
     data.df.sort_values("value", inplace=True)
-
     fig = px.bar(
         data.df,
         x="value",
@@ -132,21 +128,13 @@ def make_graph(data: parse.Freqs, y="reltt"):
             "corpname": False,
             "nicearg": False,
             "value": False,
-            "fpm": False,
-            "frq": ":,",
             "rel": ":,",
             "reltt": ":,",
+            "fpm": ":,",
+            "frq": ":,",
         },
         category_orders={"corpname": sorted(data.df["corpname"].unique())},
     )
-
-    # for corpus in data.df["corpname"].unique():
-    #     stat = data.df.loc[data.df["corpname"] == corpus, y].mean()
-    #     fig.add_hline(
-    #         y=stat,
-    #         annotation_text=f"{corpus} mean={stat.round(2)}",
-    #         line_dash="dot",
-    #         row="all", col="all")
 
     fig.update_traces(textfont_size=12, textposition="outside", cliponaxis=False)
 
@@ -176,103 +164,84 @@ def make_calls(corpora, attribute, input_text):
     return parse.hash_calls(params_list)
 
 
+def make_summary(df):
+    summary = pd.DataFrame()
+    for c in df["corpname"].unique():
+        for q in df["nicearg"].unique():
+            slice = df.query("corpname == @c and nicearg == @q")
+            record = [
+                {
+                    "corpus": c,
+                    "query": q,
+                    "mean rel %": f'{slice["rel"].mean():,.2f}',
+                    "mean reltt": f'{slice["reltt"].mean():,.2f}',
+                    "mean fpm": f'{slice["fpm"].mean():,.2f}',
+                    "mean frq": f'{slice["frq"].mean():,.2f}',
+                    "total frq": f'{slice["frq"].sum():,}',
+                }
+            ]
+            summary = pd.concat([summary, pd.DataFrame.from_records(record)])
+    return summary
+
+
+@cache.memoize()
+def draw_page(data):
+    table_props = {
+        "striped": True,
+        "bordered": True,
+        "style": {"max-width": "800px"},
+    }
+    summary = make_summary(data.df)
+    return html.Div(
+        [
+            html.H4(
+                "Summary",
+                title="""Summary:
+- mean values for measures and the total frequency for each query in each corpus""",
+            ),
+            dbc.Table.from_dataframe(summary, **table_props),
+            html.H4(
+                "Relative density",
+                title="""Relative density % (rel):
+- how often a query appears in a text type compared to the whole corpus""",
+            ),
+            make_graph(data, y="rel"),
+            html.H4(
+                "Relative frequency per million in text type",
+                title="""Relative frequency per million in text type (reltt):
+- how often a query appears for every million words in a text type""",
+            ),
+            make_graph(data, y="reltt"),
+            html.H4(
+                "Frequency per million",
+                title="""Frequency per million (fpm):
+- how often a query appears for every million words in a corpus""",
+            ),
+            make_graph(data, y="fpm"),
+            html.H4(
+                "Occurrences",
+                title="""Occurrences (frq):
+- how often a query appears in a corpus""",
+            ),
+            make_graph(data, y="frq"),
+        ]
+    )
+
+
 @dash.callback(
-    Output("frequency-graph", "children"),
+    Output("loading-output", "children"),
     Input("query-input", "n_submit"),
     Input("corpora-picker", "value"),
     Input("attribute-picker", "value"),
     State("query-input", "value"),
-    prevent_initial_callback=True,
-    background=True,
-    running=[
-        (Output("query-input", "disabled"), True, False),
-    ],
+    prevent_initial_call=True,
 )
 def update_output(n_submit, corpora, attribute, input_text):
+    result = html.Div([])
     if isinstance(input_text, str):
         input_text = input_text.strip()
     if input_text and corpora and attribute:
         call_hashes = make_calls(corpora, attribute, input_text)
         data = parse.Freqs(call_hashes)
-        summary = []
-        for corpus in data.df["corpname"].unique():
-            summary.append(
-                {
-                    "corpus": corpus,
-                    "mean rel": data.df.loc[
-                        data.df["corpname"] == corpus, "rel"
-                    ].mean(),
-                    "mean reltt": data.df.loc[
-                        data.df["corpname"] == corpus, "reltt"
-                    ].mean(),
-                    "mean fpm": data.df.loc[
-                        data.df["corpname"] == corpus, "fpm"
-                    ].mean(),
-                    "total frq": data.df.loc[
-                        data.df["corpname"] == corpus, "frq"
-                    ].sum(),
-                }
-            )
-        summary_df = pd.DataFrame.from_records(summary).round(2)
-        summary_df["mean rel"] = summary_df["mean rel"].apply(lambda x: f"{x:,.2f}")
-        summary_df["mean reltt"] = summary_df["mean reltt"].apply(lambda x: f"{x:,.2f}")
-        summary_df["mean fpm"] = summary_df["mean fpm"].apply(lambda x: f"{x:,.2f}")
-        summary_df["total frq"] = summary_df["total frq"].apply(lambda x: f"{x:,}")
-        summary_df.sort_values("corpus", inplace=True)
-
-        table_props = {
-            "striped": True,
-            "bordered": True,
-            "style": {"max-width": "600px"},
-        }
-
-        return html.Div(
-            [
-                html.H4(
-                    "Summary table",
-                    title="""
-Mean values for relative measures and the total frequency
-for the query in each corpus.""",
-                ),
-                dbc.Table.from_dataframe(summary_df, **table_props),
-                html.H4(
-                    "Relative density",
-                    title="""
-Relative density (rel) describes how often a query
-appears in a corpus text type/attribute. This is measured as a
-percentage, where 100% indicates a query appears just as often
-in a text type as it does in the whole corpus.""",
-                ),
-                make_graph(data, y="rel"),
-                html.H4(
-                    "Relative frequency per million in text type",
-                    title="""
-Relative frequency per million (reltt) describes how
-many times a query appears for every million words in a text
-type. This can be used to compare the density of a query between
-corpora.""",
-                ),
-                make_graph(data, y="reltt"),
-                html.H4(
-                    "Frequency per million",
-                    title="""
-Frequency per million (fpm) describes how many times a
-query appears for every million words in a corpus. This is also
-called normalized frequency and can be used to compare the
-density of a query between corpora.""",
-                ),
-                make_graph(data, y="fpm"),
-                html.H4(
-                    "Occurrences",
-                    title="""
-Occurrences (frq) refers to the number of times a query
-appears in the corpus, i.e., the absolute frequency.""",
-                ),
-                make_graph(data, y="frq"),
-            ]
-        )
-    else:
-        return dcc.Graph()
-
-
-# comparable text types should use RW subcorpus
+        result = draw_page(data)
+    return result
