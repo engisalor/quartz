@@ -52,8 +52,10 @@ pip install -r requirements.txt
 This is the pip command for installing packages from scratch:
 
 ```python
-pip install dash dash[celery] dash[diskcache] flask gunicorn pandas plotly pre-commit python-dotenv pyyaml requests sgex
+pip install dash dash-bootstrap-components flask flask-caching gunicorn pandas plotly pre-commit python-dotenv pyyaml requests sgex
 ```
+
+Configure pre-commit with `pre-commit install` if you plan on adhering to Quartz's coding style.
 
 #### SGEX config
 
