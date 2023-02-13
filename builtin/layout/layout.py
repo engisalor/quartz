@@ -15,14 +15,12 @@ def sidebar():
         [
             html.Div(
                 html.A(
-                    html.Img(
-                        src="assets/sidebar-icon.png", className="sidebar-icon"
-                    ),
+                    html.Img(src="assets/sidebar-icon.png", className="sidebar-icon"),
                     href="/",
                 )
             ),
             html.Div(html.P("Quartz", className="lead"), className="sidebar-header"),
-            html.Div(html.I(className="fas fa-thin fa-bars"), className="sidebar-bars"),
+            html.Div(html.I(className="bi bi-list"), className="sidebar-bars"),
             dbc.Nav(
                 sidebar_contents,
                 vertical=True,
