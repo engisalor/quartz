@@ -25,3 +25,13 @@ def list_of_dict(ls: list) -> dict:
                 return dt
 
     return _flatten(ls)
+
+
+def multivalue_to_unique(items: list, separator="|"):
+    """Takes a list of str with value separators and returns unique values."""
+
+    ls = []
+    nested = [x.split(separator) for x in items]
+    unnested = [v for ls in nested for v in ls if v]
+    ls.extend(unnested)
+    return sorted(list(set(ls)))
