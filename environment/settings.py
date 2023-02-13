@@ -1,4 +1,5 @@
 import collections
+import logging
 import os
 from os.path import dirname, join
 
@@ -8,6 +9,11 @@ from builtin.utils import io
 
 dotenv_path = join(dirname(__file__), os.getenv("ENVIRONMENT_FILE"))
 load_dotenv(dotenv_path=dotenv_path, override=True)
+
+# logging
+logging.basicConfig(
+    format="%(levelname)s - %(module)s.%(funcName)s - %(message)s", level=logging.DEBUG
+)
 
 # dash settings
 HOST = os.environ.get("HOST")
