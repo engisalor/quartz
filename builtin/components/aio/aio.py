@@ -4,6 +4,8 @@ import uuid
 import dash_bootstrap_components as dbc
 from dash import MATCH, Input, Output, State, callback, dcc, html
 
+from builtin.utils import io
+
 
 class MarkdownFileAIO(html.Div):
     class ids:
@@ -111,3 +113,53 @@ class CollapsingContentAIO(html.Div):
         if n:
             return not is_open
         return is_open
+
+
+class PopoverHeaderAIO(html.Div):
+    class ids:
+        def popoverheader(aio_id):
+            return {
+                "component": "PopoverHeaderWithMarkdownTitle",
+                "subcomponent": "popoverheader",
+                "aio_id": aio_id,
+            }
+
+    ids = ids
+
+    def __init__(
+        self,
+        header: str,
+        file: str = None,
+        title: str = None,
+        aio_id: str = None,
+    ):
+        """Makes a popover header with a title.
+
+        Args:
+            header: Text displayed as header.
+            file: Relative path to markdown file for title content.
+            title: Title content (use either ``file`` or ``title`` arg).
+            aio_id: Unique, static ID from the component (optional)."""
+
+        if aio_id is None:
+            aio_id = str(uuid.uuid4())
+
+        if file:
+            title = io.load_markdown(file)
+        elif title:
+            pass
+        else:
+            raise ValueError("Must supply either `file` or `title` args.")
+
+        super().__init__(
+            [
+                dbc.PopoverHeader(
+                    [
+                        html.Div(
+                            header,
+                            title=title,
+                        )
+                    ]
+                ),
+            ]
+        )
