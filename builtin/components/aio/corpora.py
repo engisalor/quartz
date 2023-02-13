@@ -3,15 +3,10 @@ import uuid
 import dash_bootstrap_components as dbc
 import plotly.express as px
 import sgex
-from dash import MATCH, Input, Output, State, callback, dcc, get_app, html
-from flask_caching import Cache
+from dash import MATCH, Input, Output, State, callback, dcc, html
 
-import environment.settings as env
-from builtin.call import parse
+from builtin.call import call, parse
 from builtin.components.aio.aio import MarkdownFileAIO
-
-app = get_app()
-cache = Cache(app.server, config=env.cache_config)
 
 
 class CorpusDetailsAIO(html.Div):
@@ -59,7 +54,7 @@ class CorpusDetailsAIO(html.Div):
                     ),
                     style={"max-width": "400px"},
                 ),
-                dcc.Graph(id=self.ids.graph(aio_id)),
+                html.Div(id=self.ids.graph(aio_id)),
             ]
         )
 
@@ -79,7 +74,7 @@ class CorpusDetailsAIO(html.Div):
         return attrs, attrs[0]
 
     @callback(
-        Output(ids.graph(MATCH), "figure"),
+        Output(ids.graph(MATCH), "children"),
         Input(ids.dropdown(MATCH), "value"),
         State(ids.store(MATCH), "children"),
     )
@@ -95,11 +90,15 @@ class CorpusDetailsAIO(html.Div):
         else:
             title = f"Top {len(df)} values for {attribute}"
 
-        fig = px.pie(df, values="frq", names="str", hole=0.3, title=title)
+        fig = px.pie(df, values="frq", names="str", hole=0.3, title=title, height=1000)
         fig.update_traces(textposition="inside")
         fig.update_layout(uniformtext_minsize=12, uniformtext_mode="hide")
-        fig.update_traces(hoverinfo="all")
-        return fig
+        fig.update_layout(legend_x=0, legend_y=-2)
+        fig.update_traces(hoverinfo="label+percent+name")
+
+        return [
+            dcc.Graph(figure=fig),
+        ]
 
 
 class CorpusOverviewAIO(html.Div):
@@ -178,25 +177,7 @@ class CorpusOverviewAIO(html.Div):
             "style": {"max-width": "200px"},
         }
 
-        @cache.memoize()
-        def get_info(data):
-            # get text basic corpus info
-            params = sgex.parse("builtin/call/corp_info.yml")
-            params["id"]["call"] |= {"corpname": data["corpus"]}
-            params["id"]["meta"] = data["corpus"]
-            sgex.Call(params, server=env.NOSKE_SERVER_NAME, loglevel="debug")
-            info = parse.Corp_Info(data["corpus"])
-            info.df["size"] = info.df["size"].apply(lambda x: f"{x:,}")
-            # get text type analysis
-            wlattrs = info.df["structure"] + "." + info.df["name"]
-            for wlattr in wlattrs:
-                params = sgex.parse("builtin/call/ttype_analysis.yml")
-                params["id"]["call"] |= {"corpname": info.meta, "wlattr": wlattr}
-                params["id"]["meta"] = f"ttype_analysis {info.meta}"
-                sgex.Call(params, server=env.NOSKE_SERVER_NAME, loglevel="debug")
-            return info
-
-        info = get_info(data)
+        info = call.get_info(data)
 
         return [
             MarkdownFileAIO(info.meta),
