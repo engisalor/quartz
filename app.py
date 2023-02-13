@@ -21,7 +21,7 @@ app = dash.Dash(
     assets_folder=env.ASSETS_DIR,
     external_stylesheets=[
         dbc.themes.CERULEAN,
-        dbc.icons.FONT_AWESOME,
+        dbc.icons.BOOTSTRAP,
         "https://codepen.io/chriddyp/pen/dZVMbK.css",
     ],
     meta_tags=[{"name": "viewport", "content": "width=device-width, initial-scale=1"}],
