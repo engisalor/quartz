@@ -48,7 +48,7 @@ def layout(
 
     corpora_box = html.Div(
         [
-            aio.PopoverHeaderWithTitle(
+            aio.PopoverHeaderAIO(
                 "Corpora", file="builtin/markdown/documentation/02-corpora.md"
             ),
             dcc.Checklist(
@@ -74,7 +74,7 @@ def layout(
 
     stats_box = html.Div(
         [
-            aio.PopoverHeaderWithTitle(
+            aio.PopoverHeaderAIO(
                 "Statistics",
                 title="\n".join(["Selecting statistics\n"] + stats_title),
             ),
@@ -89,7 +89,7 @@ def layout(
 
     attribute_box = html.Div(
         [
-            aio.PopoverHeaderWithTitle(
+            aio.PopoverHeaderAIO(
                 "Attributes",
                 file="builtin/markdown/documentation/03-attribute-intro.md",
             ),
@@ -101,7 +101,7 @@ def layout(
 
     filter_box = html.Div(
         [
-            aio.PopoverHeaderWithTitle(
+            aio.PopoverHeaderAIO(
                 "Attributes filter",
                 file="builtin/markdown/documentation/03.1-attribute-filter.md",
             ),
