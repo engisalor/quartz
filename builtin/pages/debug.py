@@ -52,7 +52,7 @@ layout = html.Div(
 )
 def check_noske(n_clicks):
     params = {"debug": {"type": "corp_info", "call": {"corpname": "susanne"}}}
-    job = sgex.Call(params, server=NOSKE_SERVER_NAME, output="json", loglevel="debug")
+    job = sgex.Call(params, server=NOSKE_SERVER_NAME, output="json", loglevel="warning")
     return html.Div(
         [
             html.P(f"Clicks: {n_clicks}"),
