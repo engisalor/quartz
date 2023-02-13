@@ -19,6 +19,7 @@ logging.basicConfig(
 HOST = os.environ.get("HOST")
 PORT = int(os.environ.get("PORT"))
 DASH_DEBUG = bool(os.environ.get("DASH_DEBUG"))
+REDIRECT_POLICY = os.environ.get("REDIRECT_POLICY")
 
 # cache settings
 cache_config = {
@@ -46,11 +47,14 @@ else:
     comparable_attributes = None
 
 # graph labels
-labels = {
+statistics = {
     "frq": "occurrences",
     "rel": "relative density %",
-    "reltt": "relative fpm",
     "fpm": "frequency per million",
+    "reltt": "relative fpm",
+}
+
+labels = {
     "nicearg": "query",
     "corpname": "corpus",
-}
+} | statistics
