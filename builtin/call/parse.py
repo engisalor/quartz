@@ -158,6 +158,11 @@ def response_to_df(response: dict):
         df["arg"] = response.get("Desc", [])[0].get("arg", {})
         df["nicearg"] = response.get("Desc", [])[0].get("nicearg", {})
         df["corpname"] = response.get("request", {}).get("corpname", {})
+        # NOTE API uses "rel" in "Desc" to refer to a query's
+        # fpm in the whole corpus as shown in the user interface
+        df["total_fpm"] = response.get("Desc", [])[0].get("rel", {})
+        df["total_size"] = response.get("Desc", [])[0].get("size", {})
+        df["fmaxitems"] = response.get("request", {}).get("fmaxitems", {})
         return df
 
 
@@ -173,9 +178,10 @@ class Freqs:
         if not df.empty:
             df = df.round(2)
             df.sort_values("value", inplace=True)
-        return df
+        self.json = responses
+        self.df = df
 
     def __init__(self, call_hashes, db="data/sgex.db") -> pd.DataFrame:
         self.call_hashes = call_hashes
         self.db = db
-        self.df = self.make_df()
+        self.make_df()
