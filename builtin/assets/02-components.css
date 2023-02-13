@@ -1,0 +1,44 @@
+/* query input, settings button, etc. */
+.top-panel {
+    display: inline-flex;
+    margin-bottom: 18px;
+}
+
+/* controls under a settings heading */
+.settings-options {
+    max-height: 80px;
+    overflow: scroll;
+}
+
+/* popover appearance */
+.fade.popover {
+    font-size: small;
+    height: 100%;
+    width: 300px;
+}
+
+/* popover header appearance */
+.popover-header {
+    font-size: small;
+    color: black;
+}
+
+/* bootstrap icons */
+.bi {
+    margin: 3px;
+    color: gray;
+}
+
+.bi:hover {
+    color: black;
+}
+
+/* clipboard icon */
+.svg-inline--fa {
+    margin: 3px;
+    color: gray;
+}
+
+.svg-inline--fa:hover {
+    color: black;
+}

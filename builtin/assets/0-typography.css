@@ -5,3 +5,12 @@
 
 h1, h2, h3, h4, h5, h6 {
     color: #5065A8; }
+
+code {
+    color: #5065A8;
+}
+
+.footnote {
+    font-size: small;
+    line-height: 1;
+}
