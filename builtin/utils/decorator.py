@@ -1,5 +1,6 @@
 """Decorator functions."""
 import functools
+import logging
 import time
 
 
@@ -13,6 +14,21 @@ def timer(func):
         t1 = time.perf_counter()
         n_seconds = t1 - t0
         return item, round(n_seconds, 2)
+
+    return _timit
+
+
+def timer_log(func):
+    """Times a function and logs its duration."""
+
+    @functools.wraps(func)
+    def _timit(*args, **kwargs):
+        t0 = time.perf_counter()
+        item = func(*args, **kwargs)
+        t1 = time.perf_counter()
+        n_seconds = round(t1 - t0, 6)
+        logging.debug(f"{func.__name__} {n_seconds}")
+        return item
 
     return _timit
 
