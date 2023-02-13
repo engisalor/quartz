@@ -20,6 +20,5 @@ def load_markdown(file: str, clean_header=True):
 def compile_markdown(dir: str, clean_header=False):
     files = pathlib.Path(dir).glob("*.md")
     files = sorted(files)
-
     texts = [load_markdown(f, clean_header) for f in files]
     return "\n\n".join(texts)
