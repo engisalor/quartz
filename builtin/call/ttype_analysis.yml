@@ -3,7 +3,7 @@ id:
   call:
     corpname:
     wlattr:
-    wlmaxitems: 50
+    wlmaxitems: 500
     wlsort: frq
     wlpat: .*
     wlminfreq: 1
