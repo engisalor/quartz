@@ -6,6 +6,7 @@ import dash_bootstrap_components as dbc
 import pandas as pd
 import plotly.express as px
 from dash import Input, Output, State, ctx, dcc, get_app, html
+from flask import request
 from flask_caching import Cache
 
 import environment.settings as env
@@ -20,7 +21,7 @@ dash.register_page(__name__)
 
 
 def layout(
-    query="", corpora="", statistics="rel", attribute="", attribute_filter="", **args
+    query="", corpora="", statistics="", attribute="", attribute_filter="", **args
 ):
     corpora = redirect.corpora(corpora)
     statistics = redirect.statistics(statistics)
@@ -145,13 +146,9 @@ def layout(
                 className="bi bi-download",
             ),
             dcc.Download(id="download-frequencies"),
-            # dcc.Clipboard(
-            #     title="Copy URL for current settings",
-            #     id="url-clipboard"),
+            dcc.Clipboard(title="Copy URL to current plot", id="url-clipboard"),
             # html.I(id="reset-button",
             #     className="bi bi-arrow-clockwise", title="Reset"),
-            dcc.Location(id="url", refresh=False),
-            # dcc.Location(id="url-refresh", refresh=True),
             dbc.Popover(
                 id="settings-box",
                 target="settings-button",
@@ -219,7 +216,9 @@ def update_attribute_radio(corpora, value, options):
         options = call.make_corpus_attr_options(corpora[0])
     else:
         options, value = [], None
-    return options, set_attribute_value(options, value)
+    value = set_attribute_value(options, value)
+    logging.debug(f"V={value} len(O)={len(options)}")
+    return options, value
 
 
 @cache.memoize()
@@ -270,6 +269,7 @@ def update_attribute_filter(corpora, attribute, all, none, options, value):
 
     # default to nothing
     if not attribute or not corpora:
+        logging.debug("empty")
         return [], []
     else:
         options = make_attribute_filter_options(corpora, attribute)
@@ -282,6 +282,7 @@ def update_attribute_filter(corpora, attribute, all, none, options, value):
             value = []
         if ctx.triggered_id == "attribute-filter-all":
             value = options
+        logging.debug(f"V={value} len(O)={len(options)}")
         return options, value
 
 
@@ -435,6 +436,7 @@ def draw(
     if input_text and corpora and attribute:
         error = error_check(input_text, corpora, attribute)
         if error:
+            logging.debug("error")
             return error, html.Div()
         call_hashes = call.make_calls(corpora, attribute, input_text)
         data = parse.Freqs(call_hashes)
@@ -451,24 +453,22 @@ def draw(
         niceargs = data.df["nicearg"].unique().tolist()
         _graph = [graph(data, arg) for arg in sorted(niceargs)]
         _table = table(df_original)
+    logging.debug("graph and table")
     return html.Div(_graph), _table
 
 
 @dash.callback(
-    Output("url", "search"),
-    Input("query-input", "n_submit"),
-    Input("corpora-picker", "value"),
-    Input("attribute-picker", "value"),
-    Input("attribute-filter", "value"),
-    Input("statistic-picker", "value"),
-    Input("query-button", "n_clicks"),
+    Output("url-clipboard", "content"),
+    Input("url-clipboard", "n_clicks"),
+    State("corpora-picker", "value"),
+    State("attribute-picker", "value"),
+    State("attribute-filter", "value"),
+    State("statistic-picker", "value"),
     State("query-input", "value"),
     prevent_initial_call=True,
 )
-def update_url(
-    n_submit, corpora, attribute, attribute_filter, statistics, n_clicks, input_text
-):
-    """Generates current URL parameters based on current options."""
+def copy_url(n_clicks, corpora, attribute, attribute_filter, statistics, input_text):
+    """Generates URL parameters based on current options."""
 
     if input_text and corpora and attribute and statistics:
         dt = {
@@ -481,18 +481,10 @@ def update_url(
         if len(";".join(attribute_filter)) > 500:
             logging.debug("long url: removing attribute-filter")
             dt.pop("attribute_filter", None)
-        return "?" + urllib.parse.urlencode(dt)
 
-
-# FIXME not updating to current query
-# @dash.callback(
-#     Output("url-clipboard", "content"),
-#     Input("url-clipboard", "n_clicks"),
-#     State("url", "href"),
-#     prevent_initial_call=True,
-# )
-# def update_url_clipboard(n_clicks, href):
-#     return href
+        url = request.referrer + "?" + urllib.parse.urlencode(dt)
+        logging.debug(url)
+        return url
 
 
 # FIXME not working reliably
@@ -520,4 +512,5 @@ def download_frequencies(n_clicks, corpora, attribute, query):
     data = parse.Freqs(call_hashes)
     data.df.reset_index(drop=True, inplace=True)
     file = "~".join([query, "~".join(corpora), attribute])
+    logging.debug(file)
     return dcc.send_data_frame(data.df.to_csv, file + ".csv")
