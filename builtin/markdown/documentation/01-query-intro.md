@@ -1,14 +1,34 @@
 ## Making queries
 
-- one or more words:
+One or more words:
     `united` or `united nations`
-- case insensitive:
+
+Case insensitive:
     `united nations` is the same as `United Nations`
-- semicolons make multiple separate queries:
+
+Semicolons make multiple separate queries:
     `united nations; european union`
-- pipes `|` combine similar queries:
-    `United Nations Development Programme|UNDP`
-- base verb forms retrieve multiple tenses:
+
+Pipes `|` combine similar queries:
+    `United Nations Development Programme | UNDP`
+
+Base verb forms retrieve multiple tenses:
     `unite` includes `united`, `unites`, `uniting`
-- singular nouns retrieve plural forms:
+
+Singular nouns retrieve plural forms:
     `nation` includes `nations`
+
+Single hyphens are space-friendly:
+    `evidence-based` also retrieves `evidence - based`
+
+Double hyphens include more variations:
+    `evidence-based` also retrieves `evidence - based`, `evidencebased` and `evidence based`
+
+Question marks `?` retrieve any single character:
+    `?ased` retrieves `based`, `eased`, `cased`, etc.
+
+Asterisks `*` in a word retrieve any character combinations:
+    `*ased` retrieves `based`, `increased`, `purchased`, etc.
+
+Asterisks `*` by themselves retrieve any word:
+    `evidence *` retrieves `evidence of`, `evidence shows`, etc.
