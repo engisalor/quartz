@@ -52,7 +52,7 @@ class CorpusDetailsAIO(html.Div):
                         clearable=False,
                         id=self.ids.dropdown(aio_id),
                     ),
-                    style={"max-width": "400px"},
+                    style={"maxWidth": "400px"},
                 ),
                 html.Div(id=self.ids.graph(aio_id)),
             ]
@@ -174,7 +174,7 @@ class CorpusOverviewAIO(html.Div):
         table_props = {
             "striped": True,
             "bordered": True,
-            "style": {"max-width": "200px"},
+            "style": {"maxWidth": "200px"},
         }
 
         info = call.get_info(data)

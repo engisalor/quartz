@@ -7,4 +7,4 @@ dash.register_page(__name__)
 
 
 text = compile_markdown("builtin/markdown/documentation")
-layout = html.Div(children=[dcc.Markdown(text, style={"max-width": "800px"})])
+layout = html.Div(children=[dcc.Markdown(text, style={"maxWidth": "800px"})])
