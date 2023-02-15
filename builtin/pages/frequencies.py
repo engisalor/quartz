@@ -450,7 +450,7 @@ def draw(
         if error:
             logging.debug("error")
             return error, html.Div()
-        call_hashes = call.make_calls(corpora, attribute, input_text)
+        call_hashes = call.make_freqs_calls(corpora, attribute, input_text)
         data = parse.Freqs(call_hashes)
         df_original = data.df.copy()
         data.df = data.df.melt(
@@ -520,7 +520,7 @@ def copy_url(n_clicks, corpora, attribute, attribute_filter, statistics, input_t
 def download_frequencies(n_clicks, corpora, attribute, query):
     """Prepares a file of the current data sample to download."""
 
-    call_hashes = call.make_calls(corpora, attribute, query)
+    call_hashes = call.make_freqs_calls(corpora, attribute, query)
     data = parse.Freqs(call_hashes)
     data.df.reset_index(drop=True, inplace=True)
     file = "~".join([query, "~".join(corpora), attribute])

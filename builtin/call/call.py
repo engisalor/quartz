@@ -44,7 +44,7 @@ def make_corpus_attr_options(corpus):
 
 
 @cache.memoize()
-def make_calls(corpora, attribute, input_text):
+def make_freqs_calls(corpora, attribute, input_text):
     queries = [x.strip() for x in input_text.split(";")]
     calls = {}
     for corpus in corpora:
