@@ -388,6 +388,7 @@ def graph(data: parse.Freqs, nicearg: str):
         labels=env.labels,
         facet_col="statistic",
         facet_col_wrap=1,
+        facet_row_spacing=0.1,
         title=nicearg,
         height=len(df["statistic"].unique()) * 150 + 140,
         hover_data={
@@ -404,9 +405,20 @@ def graph(data: parse.Freqs, nicearg: str):
         xaxis={"categoryorder": "category ascending"},
         hovermode="x",
         title_font_size=24,
+        xaxis_title="attribute=" + " & ".join(df["attribute"].unique()),
     )
     fig.update_yaxes(matches=None)
-    fig.update_traces(textfont_size=16, textposition="outside", cliponaxis=False)
+
+    def customize_annotation(annotation):
+        text = annotation.text.split("=")[-1]
+        if text in env.labels.keys():
+            text = "f=" + env.labels[text]
+        annotation.update(
+            text=text,
+            # font_size=14,
+        )
+
+    fig.for_each_annotation(customize_annotation)
     return dcc.Graph(figure=fig)
 
 
