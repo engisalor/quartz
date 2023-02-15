@@ -48,7 +48,7 @@ def make_calls(corpora, attribute, input_text):
     calls = {}
     for corpus in corpora:
         if attribute in env.comparable_attributes:
-            fcrit_attr = env.corpora[corpus][attribute]
+            fcrit_attr = env.corpora[corpus]["comparable_attributes"][attribute]
         else:
             fcrit_attr = attribute
         for query in queries:

@@ -239,7 +239,7 @@ def make_attribute_filter_options(corpora, attribute):
     for corpus in corpora:
         attr = attribute  # noqa: F841
         if attribute in env.comparable_attributes:
-            attr = env.corpora[corpus][attribute]  # noqa: F841
+            attr = env.corpora[corpus]["comparable_attributes"][attribute]  # noqa: F841
         wordlist = parse.Wordlist(f"ttype_analysis {corpus}")
         df = pd.concat([df, wordlist.df])
         slice = df.query("attribute == @attr").copy()

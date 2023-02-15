@@ -39,8 +39,8 @@ CORPORA_FILE = os.environ.get("CORPORA_FILE")
 # corpora settings
 if CORPORA_FILE:
     corpora = io.load_yaml(CORPORA_FILE)
-    skips = ["name"]
-    attrs = [a for v in corpora.values() for a in v.keys() if a not in skips]
+    dicts = [corpora.get(k).get("comparable_attributes", {}) for k in corpora.keys()]
+    attrs = [y for x in dicts for y in x.keys()]
     comparable_attributes = [i for i, c in collections.Counter(attrs).items() if c > 1]
 else:
     corpora = None
