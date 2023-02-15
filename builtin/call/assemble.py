@@ -1,6 +1,4 @@
 """Methods to assemble API calls with parameters from args and a template file."""
-import re
-
 import sgex
 
 
@@ -27,7 +25,7 @@ def freqs_simple(
 
 def single_token(query):
     """Converts each token in a query following `simple` SkE query behavior."""
-    return [f'[lc="{x.strip()}" | lemma_lc="{x.strip()}"]' for x in query.split()]
+    return [f'[lc="{x.strip()}"|lemma_lc="{x.strip()}"]' for x in query.split()]
 
 
 def hyphenation(query, mode="simple"):
@@ -36,11 +34,8 @@ def hyphenation(query, mode="simple"):
     `simple` mode follows SkE behavior and also searches for hyphens as separate tokens
     (`evidence-based` will also be queried as `evidence` `-` `based`). This is needed
     for corpora compiled with the Stanza NLP package, where hyphens are always separate
-    tokens from adjoining words (referred to as `atomic` in this code).
+    tokens from adjoining words.
     """
-
-    def atomic(query):
-        return " ".join(re.split("(-)", query))
 
     def apart(query):
         return query.replace("-", " ")
@@ -50,22 +45,20 @@ def hyphenation(query, mode="simple"):
 
     if mode == "asis":
         q = query
-    elif mode == "atomic":
-        q = atomic(query)
-    elif mode == "asis+atomic":
-        q = query + "|" + atomic(query)
-    elif mode == "nospace+asis+atomic":
-        q = nospace(query) + "|" + atomic(query) + "|" + query
-    elif mode == "nospace+apart+asis+atomic":
-        q = nospace(query) + "|" + apart(query) + "|" + query + "|" + atomic(query)
+    elif mode == "apart":
+        q = apart(query)
+    elif mode == "asis+apart":
+        q = query + "|" + apart(query)
+    elif mode == "nospace+asis+apart":
+        q = nospace(query) + "|" + apart(query) + "|" + query
     elif mode == "simple":
         if "--" in query:
             # FIXME can't differentiate preferences within a query if it
             # includes a mix of double and single dashes
             query = query.replace("--", "-")
-            q = nospace(query) + "|" + apart(query) + "|" + query + "|" + atomic(query)
+            q = nospace(query) + "|" + apart(query) + "|" + query
         else:
-            q = query + "|" + atomic(query)
+            q = query + "|" + apart(query)
     else:
         raise ValueError(f"Bad hyphen_mode {mode}")
     return q
@@ -74,14 +67,23 @@ def hyphenation(query, mode="simple"):
 def simple_query(query: str, hyphen_mode="simple"):
     "Assembles a simple Ske query."
 
-    if "-" in query:
-        query = hyphenation(query, hyphen_mode)
     if "|" in query:
-        q = ["".join(single_token(x)) for x in query.split("|")]
+        q = query.split("|")
+        for x in range(len(q)):
+            if "-" in q[x]:
+                q[x] = hyphenation(q[x].strip(), hyphen_mode)
+            else:
+                q[x] = q[x].strip()
+            q[x] = [single_token(y) for y in q[x].split("|")]
+            q[x] = ["".join(y) for y in q[x]]
+            q[x] = " | ".join(q[x])
         q = " | ".join(q)
     else:
-        q = single_token(query)
-        q = "".join(q)
+        if "-" in query:
+            query = hyphenation(query.strip(), hyphen_mode)
+        q = [single_token(x) for x in query.split("|")]
+        q = ["".join(x) for x in q]
+        q = " | ".join(q)
     q = q.replace("?", ".")
     q = q.replace("*", ".*")
     return ["q" + q]
