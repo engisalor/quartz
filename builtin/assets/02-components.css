@@ -4,23 +4,24 @@
     margin-bottom: 18px;
 }
 
-/* controls under a settings heading */
-.settings-options {
-    max-height: 80px;
-    overflow: scroll;
-}
-
 /* popover appearance */
-.fade.popover {
+.popover {
+    max-width: 400px;
+    width: 400px;
     font-size: small;
     height: 100%;
-    width: 300px;
 }
 
 /* popover header appearance */
 .popover-header {
     font-size: small;
     color: black;
+}
+
+/* controls under a popover heading */
+.settings-options {
+    max-height: 80px;
+    overflow: scroll;
 }
 
 /* bootstrap icons */
