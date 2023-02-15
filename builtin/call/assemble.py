@@ -13,7 +13,7 @@ def freqs_simple(
         query: word or phrase to search for.
         corpus: corpus to search in (corresponds to ``corpname``).
         fcrit_attr: attribute (text type) to search in (e.g., ``doc.date``).
-        call_file: file with default call parameters (besides)
+        call_file: path to file with default call parameters.
     """
 
     dt = sgex.parse(call_file)
@@ -31,12 +31,12 @@ def single_token(query):
 
 
 def hyphenation(query, mode="simple"):
-    """Manages query hyphen parsing.
+    """Manages hyphen parsing for queries.
 
     `simple` mode follows SkE behavior and also searches for hyphens as separate tokens
     (`evidence-based` will also be queried as `evidence` `-` `based`). This is needed
-    for corpora compiled with Stanza NLP package, where hyphens are always separate
-    tokens from adjoining words, a.k.a `atomized` in this code).
+    for corpora compiled with the Stanza NLP package, where hyphens are always separate
+    tokens from adjoining words (referred to as `atomic` in this code).
     """
 
     def atomic(query):

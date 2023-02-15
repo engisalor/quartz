@@ -1,3 +1,4 @@
+"""Custom components for the Corpora page."""
 import uuid
 
 import dash_bootstrap_components as dbc
@@ -10,6 +11,8 @@ from builtin.components.aio.aio import MarkdownFileAIO
 
 
 class CorpusDetailsAIO(html.Div):
+    """Makes a pie chart describing corpus attributes."""
+
     class ids:
         def store(aio_id):
             return {
@@ -102,6 +105,8 @@ class CorpusDetailsAIO(html.Div):
 
 
 class CorpusOverviewAIO(html.Div):
+    """Combines MD file text with a summary table and CorpusDetails in dbc.Collapse."""
+
     class ids:
         def store(aio_id):
             return {

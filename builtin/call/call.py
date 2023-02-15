@@ -1,5 +1,4 @@
 """Methods to execute API calls."""
-
 import sgex
 from dash import get_app
 from flask_caching import Cache
@@ -32,6 +31,8 @@ def get_info(data):
 
 @cache.memoize()
 def make_corpus_attr_options(corpus):
+    """Outputs corpus attributes formatted for a Dash component `options` variable."""
+
     params = sgex.parse("builtin/call/corp_info.yml")
     params["id"]["call"] |= {"corpname": corpus}
     params["id"]["meta"] = corpus

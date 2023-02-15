@@ -1,3 +1,4 @@
+"""General custom components."""
 import pathlib
 import uuid
 
@@ -8,6 +9,14 @@ from builtin.utils import io
 
 
 class MarkdownFileAIO(html.Div):
+    """Displays markdown content from a file.
+
+    Args:
+        file: Filename with or without an ``.md`` extension.
+        dir: Relative path to file.
+        markdown_props: Additional args for dcc.Markdown.
+        aio_id: Unique, static ID from the component (optional)."""
+
     class ids:
         def markdown(aio_id):
             return {
@@ -25,14 +34,6 @@ class MarkdownFileAIO(html.Div):
         markdown_props={"style": {"maxWidth": "800px"}},
         aio_id: str = None,
     ):
-        """Displays markdown content from a file.
-
-        Args:
-            file: Filename with or without an ``.md`` extension.
-            dir: Relative path to file.
-            markdown_props: Additional args for dcc.Markdown.
-            aio_id: Unique, static ID from the component (optional)."""
-
         dir = pathlib.Path(dir)
         file = pathlib.Path(file).with_suffix(".md")
         filepath = dir / file
@@ -58,6 +59,8 @@ class MarkdownFileAIO(html.Div):
 
 
 class CollapsingContentAIO(html.Div):
+    """Makes a collapsing content component with associated button."""
+
     class ids:
         def dbc_button(aio_id):
             return {
@@ -87,8 +90,6 @@ class CollapsingContentAIO(html.Div):
         dbc_collapse_props={"is_open": False},
         aio_id: str = None,
     ):
-        """A collapsing content component with button toggle."""
-
         if aio_id is None:
             aio_id = str(uuid.uuid4())
 
@@ -116,6 +117,14 @@ class CollapsingContentAIO(html.Div):
 
 
 class PopoverHeaderAIO(html.Div):
+    """Makes a popover header with a title.
+
+    Args:
+        header: Text displayed as header.
+        file: Relative path to markdown file for title content.
+        title: Title content (use either ``file`` or ``title`` arg).
+        aio_id: Unique, static ID from the component (optional)."""
+
     class ids:
         def popoverheader(aio_id):
             return {
@@ -133,14 +142,6 @@ class PopoverHeaderAIO(html.Div):
         title: str = None,
         aio_id: str = None,
     ):
-        """Makes a popover header with a title.
-
-        Args:
-            header: Text displayed as header.
-            file: Relative path to markdown file for title content.
-            title: Title content (use either ``file`` or ``title`` arg).
-            aio_id: Unique, static ID from the component (optional)."""
-
         if aio_id is None:
             aio_id = str(uuid.uuid4())
 

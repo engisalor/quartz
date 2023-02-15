@@ -1,3 +1,4 @@
+"""Functions for converting data types and shapes."""
 import pandas as pd
 
 

@@ -1,3 +1,4 @@
+"""Manage app URL redirection and parsing search parameters."""
 import logging
 
 import dash
@@ -7,6 +8,7 @@ import environment.settings as env
 
 
 def global_policy():
+    """Basic policy used across the app (points to page-specific policies)."""
     page_registry = dict(dash.page_registry.items())
     paths = [v["path"] for v in page_registry.values()]
     # ignore unrelated requests

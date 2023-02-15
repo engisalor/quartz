@@ -1,3 +1,4 @@
+"""Methods to read from DB and parse API data."""
 import hashlib
 import json
 import sqlite3 as sql
@@ -44,7 +45,7 @@ def select_response_by_hash(hashes: list, db="data/sgex.db") -> list:
     """Gets response data for matching hashes.
 
     Args:
-        calls: list of hashes corresponding to db call parameters.
+        hashes: list of hashes corresponding to db call parameters.
         db: SGEX database to select content from.
     """
 
@@ -184,4 +185,7 @@ class Freqs:
     def __init__(self, call_hashes, db="data/sgex.db") -> pd.DataFrame:
         self.call_hashes = call_hashes
         self.db = db
+        # FIXME to optimize, df columns with one or two values
+        # (e.g., fmaxitems) should be removed and passed
+        # to other functions as Freqs class attributes
         self.make_df()
