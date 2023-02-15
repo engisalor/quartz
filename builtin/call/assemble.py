@@ -1,4 +1,6 @@
 """Methods to assemble API calls with parameters from args and a template file."""
+import re
+
 import sgex
 
 
@@ -16,74 +18,83 @@ def freqs_simple(
 
     dt = sgex.parse(call_file)
     dt["id"]["call"] |= {
-        "q": simple_query(query),
+        "q": [simple_query(query)],
         "corpname": corpus,
         "fcrit": [f"{fcrit_attr} 0"],
     }
     return dt["id"]
 
 
-def single_token(query):
-    """Converts each token in a query following `simple` SkE query behavior."""
-    return [f'[lc="{x.strip()}"|lemma_lc="{x.strip()}"]' for x in query.split()]
+def phrase_to_cql(phrase):
+    """Converts each phrase in a query following `simple` SkE query behavior."""
+    words = [x for x in phrase.split() if x]
+    return " ".join([f'[lc="{w.strip()}" | lemma_lc="{w.strip()}"]' for w in words])
 
 
-def hyphenation(query, mode="simple"):
-    """Manages hyphen parsing for queries.
+def apart(query):
+    return query.replace("-", " ").replace("  ", " ")
 
-    `simple` mode follows SkE behavior and also searches for hyphens as separate tokens
-    (`evidence-based` will also be queried as `evidence` `-` `based`). This is needed
-    for corpora compiled with the Stanza NLP package, where hyphens are always separate
-    tokens from adjoining words.
-    """
 
-    def apart(query):
-        return query.replace("-", " ")
+def nospace(query):
+    return query.replace("-", "")
 
-    def nospace(query):
-        return query.replace("-", "")
 
-    if mode == "asis":
-        q = query
-    elif mode == "apart":
-        q = apart(query)
-    elif mode == "asis+apart":
-        q = query + "|" + apart(query)
-    elif mode == "nospace+asis+apart":
-        q = nospace(query) + "|" + apart(query) + "|" + query
-    elif mode == "simple":
-        if "--" in query:
-            # FIXME can't differentiate preferences within a query if it
-            # includes a mix of double and single dashes
-            query = query.replace("--", "-")
-            q = nospace(query) + "|" + apart(query) + "|" + query
-        else:
-            q = query + "|" + apart(query)
+def joined(query):
+    return query.replace("--", "-")
+
+
+def atomic(query):
+    return " ".join(re.split("(-)", query)).replace("-  -", "-")
+
+
+def if_atomic(query, atomic_hyphens):
+    if atomic_hyphens:
+        return atomic(query)
     else:
-        raise ValueError(f"Bad hyphen_mode {mode}")
-    return q
+        return None
 
 
-def simple_query(query: str, hyphen_mode="simple"):
-    "Assembles a simple Ske query."
+def query_to_dict(query: str, atomic_hyphens=True):
+    "Decomposes a query string into a dict of components."
 
-    if "|" in query:
-        q = query.split("|")
-        for x in range(len(q)):
-            if "-" in q[x]:
-                q[x] = hyphenation(q[x].strip(), hyphen_mode)
+    query = query.strip().split("|")
+    queries = {}
+    for x in range(len((query))):
+        q = query[x].strip()
+        queries[x] = {}
+        q = query[x].split()
+        for y in range(len(q)):
+            queries[x][y] = []
+            if "--" in q[y]:
+                queries[x][y] = [
+                    nospace(q[y]),
+                    apart(q[y]),
+                    joined(q[y]),
+                    if_atomic(q[y], atomic_hyphens),
+                ]
+            elif "-" in q[y]:
+                queries[x][y] = [q[y], if_atomic(q[y], atomic_hyphens)]
             else:
-                q[x] = q[x].strip()
-            q[x] = [single_token(y) for y in q[x].split("|")]
-            q[x] = ["".join(y) for y in q[x]]
-            q[x] = " | ".join(q[x])
-        q = " | ".join(q)
-    else:
-        if "-" in query:
-            query = hyphenation(query.strip(), hyphen_mode)
-        q = [single_token(x) for x in query.split("|")]
-        q = ["".join(x) for x in q]
-        q = " | ".join(q)
-    q = q.replace("?", ".")
-    q = q.replace("*", ".*")
-    return ["q" + q]
+                queries[x][y] = [q[y]]
+            queries[x][y] = [a for a in queries[x][y] if a]
+    return queries
+
+
+def simple_query(query: str, atomic_hyphens=True):
+    """Converts a query into CQL following SkE `simple` behavior."""
+    queries = query_to_dict(query, atomic_hyphens)
+    dt = queries.copy()
+    all = []
+    for v in dt.values():
+        ls = []
+        for c in v.keys():
+            v[c] = [phrase_to_cql(phrase) for phrase in v[c]]
+            if len(v[c]) > 1:
+                v[c] = "( " + " | ".join(v[c]) + " )"
+            else:
+                v[c] = " | ".join(v[c])
+            ls.append(v[c])
+        all.append("".join(ls))
+    cql = "q" + "|".join(all)
+    cql = cql.replace("*", ".*").replace("?", ".")
+    return cql
