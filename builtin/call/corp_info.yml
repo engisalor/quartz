@@ -1,6 +1,0 @@
-id:
-  type: corp_info
-  call:
-    corpname:
-    subcorpora: 1
-    struct_attr_stats: 1
