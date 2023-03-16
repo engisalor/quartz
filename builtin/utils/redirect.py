@@ -46,9 +46,10 @@ def frequencies_policy(dt):
 
 
 def corpora(corpora):
-    # default to all corpora
+    # default to first corpus
     if not len(corpora):
-        return [k for k in env.corpora.keys()]
+        corpora = [k for k in env.corpora.keys()]
+        return [corpora[0]]
     else:
         return corpora.split(";")
 
