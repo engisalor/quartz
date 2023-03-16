@@ -13,4 +13,6 @@ jobs:
           release-type: python
           package-name: release-please-action
           bump-minor-pre-major: true
-          extra-files: builtin/version.py CITATION.cff
+          extra-files: |
+            builtin/version.py
+            CITATION.cff
