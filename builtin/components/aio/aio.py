@@ -1,4 +1,4 @@
-"""General custom components."""
+"""All-in-one components."""
 import pathlib
 import uuid
 
@@ -12,8 +12,7 @@ class MarkdownFileAIO(html.Div):
     """Displays markdown content from a file.
 
     Args:
-        file: Filename with or without an ``.md`` extension.
-        dir: Relative path to file.
+        file: Filename with relative path.
         markdown_props: Additional args for dcc.Markdown.
         aio_id: Unique, static ID from the component (optional)."""
 
@@ -30,22 +29,10 @@ class MarkdownFileAIO(html.Div):
     def __init__(
         self,
         file: str,
-        dir: str = "markdown",
         markdown_props={"style": {"maxWidth": "800px"}},
         aio_id: str = None,
     ):
-        dir = pathlib.Path(dir)
-        file = pathlib.Path(file).with_suffix(".md")
-        filepath = dir / file
-        filepath_builtin = pathlib.Path("builtin/markdown") / file
-        if filepath.exists():
-            pass
-        elif filepath_builtin.exists():
-            filepath = filepath_builtin
-        else:
-            raise FileNotFoundError()
-
-        with open(filepath) as f:
+        with open(pathlib.Path(file)) as f:
             text = f.read()
 
         if aio_id is None:
