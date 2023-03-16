@@ -1,16 +1,12 @@
 # Quartz
 
-*- Under construction -*
+Quartz is an app for visualizing corpus data from Sketch Engine servers. It's structured as an application template: you can build custom features on top of the defaults. It's made with Python and the Dash framework and is deployable as a Docker container.
 
-Quartz is a dashboard for visualizing corpus data from Sketch Engine servers. It's built with Python and Plotly's Dash framework and is deployable as a Docker container.
-
-This repo is oriented toward developers and researchers wanting to automate custom data visualization tasks for corpus linguistics. To use Quartz you'll need a compiled Sketch Engine corpus (if using locally) and/or API access to a Sketch Engine server (for making external queries - under development).
-
-Quartz is designed as an application template to allow for easy adaptation, though it can be used as-is with its built-in visualizations. These features are meant to be a common resource for developing corpus visualization methods (contributions are welcome). Some modifications may be needed depending on how your data is structured.
+This repo is oriented toward developers and researchers wanting to automate custom data visualization tasks for corpus linguistics. To use Quartz you'll need API access to a Sketch Engine or NoSketch Engine server, as well as familiarity with the tools below.
 
 ## Installation
 
-Get started by cloning/forking this repo. Also check out these links for information on each software dependency:
+Get started by cloning this repo and checking out these links for information on each dependency:
 
 - [Sketch Engine](https://www.sketchengine.eu/)
 - [NoSketch Engine](https://nlp.fi.muni.cz/trac/noske)
@@ -20,9 +16,15 @@ Get started by cloning/forking this repo. Also check out these links for informa
 - [Dash web app framework](https://dash.plotly.com/)
 - [Docker containerization](https://www.docker.com/)
 
+To make queries to the Sketch Engine server, get an [API key](https://www.sketchengine.eu/documentation/api-documentation/).
+
+To make queries to your own server, see the above NoSketch Engine resources.
+
+API-based data collection requires understanding the SGEX package (a Sketch Engine API wrapper); try it out as a standalone tool first.
+
 ### Get started
 
-Run the following snippet to copy default configuration files. Modify these files as needed to fit your project.
+Run the following snippet to copy default configuration files.
 
 ```bash
 cp -i builtin/config/.env .env
@@ -31,12 +33,37 @@ make get_started
 
 #### Environment variables
 
-Environment variables are managed in these files.
+Environment variables are managed in these files - review them and make adjustments as needed.
 
 - `.env` is for `docker-compose` variables
 - `environment/.env` is for production environments
 - `environment/.env.dev` is for development/running Quartz as a standalone Flask app
 - the development environment activates automatically for VScode users via `.vscode/launch.json`
+
+Below are some of the configuration variables. Develop your own content in `custom/` and update as needed. For example, to use a set of custom pages set this variable `PAGES_DIR="custom/pages"`.
+
+```bash
+# the server to send requests to
+SGEX_SERVER="ske"
+
+# server configuration (this example is for Sketch Engine's main server)
+SGEX_CONFIG_JSON='{"ske": {"api_key": "<key>", "host": "https://api.sketchengine.eu/bonito/run.cgi", "username": "<user>", "wait": {"0": 1, "2": 99, "5": 899, "45": null}}}'
+
+# a key for encrypting API response data (see environment/settings.py)
+SERIALIZER_KEY='<fernet_key>'
+
+# the assets to use
+ASSETS_DIR="builtin/assets"
+
+# the pages to use
+PAGES_DIR="builtin/pages"
+
+# the layout to use
+LAYOUT_MODULE="builtin.layout.layout"
+
+# the list of corpora to use
+CORPORA_FILE="builtin/config/corpora-ske.yml"
+```
 
 #### Virtual environments
 
@@ -52,24 +79,24 @@ pip install -r requirements.txt
 This is the pip command for installing packages from scratch:
 
 ```python
-pip install dash dash-bootstrap-components flask flask-caching gunicorn pandas plotly pre-commit python-dotenv pyyaml requests sgex
+pip install cryptography dash dash-bootstrap-components flask gunicorn pandas plotly pre-commit python-dotenv pyyaml requests sgex
 ```
 
 Configure pre-commit with `pre-commit install` if you plan on adhering to Quartz's coding style.
 
-#### SGEX config
-
-Quartz uses the SGEX Python package for making Sketch Engine API requests. This requires a `config.yml` file with server names and settings (see SGEX documentation for details). By default, `make get_started` settings only work with a local NoSkE server.
-
 ### Build images
 
-Run `docker-compose build` to build a Quartz image and pull the NoSketch Engine Docker image.
+Run `docker-compose build` to build a Quartz image and pull the NoSketch Engine Docker image. There are a few `Makefile` commands to manage running containers. If you never plan on using a local server, comment out the `noske` lines in `docker-compose.yml`.
 
-### Run NoSketch Engine
+#### Option 1: make queries to Sketch Engine
 
-Before starting Quartz, run `make noske` to start NoSketch Engine. Be aware that the container may not work if the `CORPORA_DIR` path isn't correct, is empty, or has invalid corpus files. See the NoSketch Engine Docker repo listed earlier for more guidance.
+Skip this if you aren't using a local server. (But do review Sketch Engine's API policy.)
 
-Run `docker stop noske` to stop the container.
+#### Option 2: use a local NoSketch Engine server
+
+Before starting Quartz, run `make noske` to start NoSketch Engine. The `CORPORA_DIR` path must be correct and contain valid corpus files. See the NoSketch Engine Docker repo for guidance.
+
+To stop the container, run `docker stop noske`.
 
 ### Run Quartz
 
@@ -79,22 +106,31 @@ Quartz can run like any normal Flask web app as long as `ENVIRONMENT_FILE` is se
 
 #### With docker
 
-Run `make quartz` to start Quartz, and to stop the container run `docker stop quartz`.
+Run `make quartz` to start Quartz (to stop it, run `docker stop quartz`).
 
-### Developing Quartz
+### Use Quartz
 
-#### Notes
+Open Quartz in a web browser and try it out. These are the default features included so far. They've been tested on a handful of corpora, so they are stable - but don't expect perfect compatibility out of the box.
 
--
-- `.dockerignore` excludes everything by default
+- a `Corpora` page to analyze corpus composition (sizes, attributes, text types, etc.)
+- a `Frequencies` page to automatically graph frequency data
+
+(Available corpora must be defined in the `CORPORA_FILE` beforehand.)
+
+### Develop Quartz
+
+- `builtin/` has the app's default content
+- add your own content in `custom/`
+- customize app settings in `environment/settings.py`
+- `environment/labels.yml` is for customizing graph annotations: this is a dict of mapping items (`{original_string: replacement_string}`)
+- API response data is encrypted in a filesystem cache by default, but the backend can be changed with [requests-cache](https://requests-cache.readthedocs.io) settings
+- `data/` is not excluded in `.dockerignore` by default: change git/Docker settings as needed before building your own images
 
 ## About
 
-Quartz was developed with funding from the [Humanitarian Encyclopedia](https://humanitarianencyclopedia.org) and support from the University of Granada's [LexiCon research group](http://lexicon.ugr.es).
+Quartz was developed with funding from the [Humanitarian Encyclopedia](https://humanitarianencyclopedia.org) and support from the University of Granada ([LexiCon research group](http://lexicon.ugr.es)). It's possible thanks to the work of [Lexical Computing](https://www.lexicalcomputing.com/), researchers who've [contributed to Sketch Engine](https://www.sketchengine.eu/bibliography-of-sketch-engine/), and the Dockerized version by the Eötvös Loránd University Department of Digital Humanities. NoSketch Engine is available under [GPL licenses](https://nlp.fi.muni.cz/trac/noske).
 
-Quartz is possible thanks to the work of [Lexical Computing](https://www.lexicalcomputing.com/), researchers who've [contributed to Sketch Engine](https://www.sketchengine.eu/bibliography-of-sketch-engine/), and the Dockerized version by the Eötvös Loránd University Department of Digital Humanities. NoSketch Engine is available under [GPL licenses](https://nlp.fi.muni.cz/trac/noske).
-
-This app includes [Dash Bootstrap Components](https://dash-bootstrap-components.opensource.faculty.ai/) and its Docker implementation is based on [this template](https://github.com/CzakoZoltan08/dash-clean-architecture-template). [Dash's community forum](https://community.plotly.com/) also deserves thanks.
+This app includes [Dash Bootstrap Components](https://dash-bootstrap-components.opensource.faculty.ai/) and its early Docker implementation was based on [this template](https://github.com/CzakoZoltan08/dash-clean-architecture-template). Also check out [Dash's community forum](https://community.plotly.com/).
 
 The name Quartz is a nod to Sketch Engine's GUI, Crystal.
 
