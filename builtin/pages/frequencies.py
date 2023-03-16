@@ -1,21 +1,20 @@
 import logging
 import urllib
+from time import perf_counter
 
 import dash
 import dash_bootstrap_components as dbc
 import pandas as pd
 import plotly.express as px
+import sgex
 from dash import Input, Output, State, ctx, dcc, get_app, html
 from flask import request
-from flask_caching import Cache
 
 import environment.settings as env
-from builtin.call import call, parse
 from builtin.components.aio import aio
-from builtin.utils import convert, io, redirect
+from builtin.utils import convert, redirect
 
 app = get_app()
-cache = Cache(app.server, config=env.cache_config)
 
 dash.register_page(__name__)
 
@@ -34,9 +33,7 @@ def layout(
                 "Search",
                 id="query-button",
                 color="light",
-                title=io.load_markdown(
-                    "builtin/markdown/documentation/01-query-intro.md"
-                ),
+                title="Click or press enter to search",
             ),
             dbc.Input(
                 value=query,
@@ -49,9 +46,7 @@ def layout(
 
     corpora_box = html.Div(
         [
-            aio.PopoverHeaderAIO(
-                "Corpora", file="builtin/markdown/documentation/02-corpora.md"
-            ),
+            aio.PopoverHeaderAIO("Corpora", title="Select which corpus/corpora to use"),
             dcc.Checklist(
                 options=[
                     {"label": v["name"], "value": k} for k, v in env.corpora.items()
@@ -63,21 +58,11 @@ def layout(
         ]
     )
 
-    stats_title = [
-        io.load_markdown(x)
-        for x in [
-            "builtin/markdown/documentation/07-frq-intro.md",
-            "builtin/markdown/documentation/08-rel-intro.md",
-            "builtin/markdown/documentation/09-fpm-intro.md",
-            "builtin/markdown/documentation/10-reltt-intro.md",
-        ]
-    ]
-
     stats_box = html.Div(
         [
             aio.PopoverHeaderAIO(
                 "Statistics",
-                title="\n".join(["Selecting statistics\n"] + stats_title),
+                title="Choose which statistics to display",
             ),
             dcc.Checklist(
                 options=[{"label": v, "value": k} for k, v in env.statistics.items()],
@@ -92,7 +77,7 @@ def layout(
         [
             aio.PopoverHeaderAIO(
                 "Attributes",
-                file="builtin/markdown/documentation/03-attribute-intro.md",
+                title="Select an attribute to study.",
             ),
             dcc.RadioItems(
                 value=attribute, id="attribute-picker", className="settings-options"
@@ -104,7 +89,7 @@ def layout(
         [
             aio.PopoverHeaderAIO(
                 "Attributes filter",
-                file="builtin/markdown/documentation/03.1-attribute-filter.md",
+                title="Filter attribute values",
             ),
             html.I(
                 id="attribute-filter-all",
@@ -133,7 +118,7 @@ def layout(
                 "Settings",
                 id="settings-button",
                 color="light",
-                title="Click to show/hide settings",
+                title="Show/hide settings",
             ),
             html.I(
                 id="table-button",
@@ -147,8 +132,17 @@ def layout(
             ),
             dcc.Download(id="download-frequencies"),
             dcc.Clipboard(title="Copy URL to current plot", id="url-clipboard"),
-            # html.I(id="reset-button",
-            #     className="bi bi-arrow-clockwise", title="Reset"),
+            html.I(
+                id="guide-button",
+                className="bi bi-question-lg",
+                title="Show/hide user guide",
+            ),
+            dbc.Popover(
+                dbc.PopoverBody(aio.MarkdownFileAIO("builtin/markdown/user_guide.md")),
+                target="guide-button",
+                trigger="click",
+                style={"overflow": "scroll"},
+            ),
             dbc.Popover(
                 id="settings-box",
                 target="settings-button",
@@ -171,6 +165,7 @@ def layout(
 
     return html.Div(
         [
+            dcc.Store(id="store-frequencies", storage_type="session"),
             html.H1("Frequencies"),
             top_panel,
             dbc.Collapse(
@@ -213,7 +208,10 @@ def update_attribute_radio(corpora, value, options):
     if len(corpora) > 1:
         options = [{"label": x, "value": x} for x in env.comparable_attributes]
     elif len(corpora) == 1:
-        options = call.make_corpus_attr_options(corpora[0])
+        df = env.premade_calls[corpora[0]]["structures_df"].copy()
+        df["options"] = df["structure"] + "." + df["attribute"]
+        df.sort_values(["options"], inplace=True)
+        options = [{"label": x, "value": x} for x in df["options"].values]
     else:
         options, value = [], None
     value = set_attribute_value(options, value)
@@ -221,7 +219,6 @@ def update_attribute_radio(corpora, value, options):
     return options, value
 
 
-@cache.memoize()
 def make_attribute_filter_options(corpora, attribute):
     """Returns attribute filter options for selected corpora.
 
@@ -235,14 +232,13 @@ def make_attribute_filter_options(corpora, attribute):
     """
 
     options = []
-    df = pd.DataFrame()
     for corpus in corpora:
         attr = attribute  # noqa: F841
         if attribute in env.comparable_attributes:
             attr = env.corpora[corpus]["comparable_attributes"][attribute]  # noqa: F841
-        wordlist = parse.Wordlist(f"ttype_analysis {corpus}")
-        df = pd.concat([df, wordlist.df])
-        slice = df.query("attribute == @attr").copy()
+        slice = (
+            env.premade_calls[corpus]["ttypes_df"].query("attribute == @attr").copy()
+        )
         slice.sort_values("str", inplace=True)
         o = convert.multivalue_to_unique(slice["str"].unique(), "|")
         options.extend(o)
@@ -260,13 +256,7 @@ def make_attribute_filter_options(corpora, attribute):
     State("attribute-filter", "value"),
 )
 def update_attribute_filter(corpora, attribute, all, none, options, value):
-    """Controls attribute filters.
-
-    TODO
-        Drawing graphs fails for certain long, multiword filter values (esp. urls,
-        titles); may be related to attributes with many more values than ``fmaxitems``.
-    """
-
+    """Controls attribute filters."""
     # default to nothing
     if not attribute or not corpora:
         logging.debug("empty")
@@ -298,46 +288,31 @@ def toggle_table_collapse(n, is_open):
     return is_open
 
 
-def error_check(input_text, corpora, attribute):
-    """Displays custom error messages to user."""
-
-    # non-empty values (redundant)
-    components = {"query": input_text, "corpora": corpora, "attribute": attribute}
-    for k, v in components.items():
-        if not v:
-            return dbc.Alert(f"Select a {k}", color="info")
-    # too many simultaneous queries
-    if input_text.count(";") > 3:
-        msg = "Too many queries: the maximum is 4 (e.g., `one;two;three;four`)"
-        return dbc.Alert(msg, color="info", style={"display": "inline-flex"})
-    return None
-
-
 def footnote(letter, text):
     return html.P([html.Sup(letter), text], className="footnote")
 
 
-@cache.memoize()
 def table(dataframe):
     """Builds a table of summary statistics."""
 
     df = pd.DataFrame()
     for c in dataframe["corpname"].unique():
+        corpus = env.corpora[c].get("name")
         for q in dataframe["nicearg"].unique():
             slice = dataframe.query("corpname == @c and nicearg == @q")
-            size = slice["total_size"].unique()
-            if len(size) == 1:
-                size = f"{size[0]:,}"
+            total_frq = slice["total_frq"].unique()
+            if len(total_frq) == 1:
+                total_frq = f"{total_frq[0]:,}"
             fpmcorp = slice["total_fpm"].unique()
             if len(fpmcorp) == 1:
                 fpmcorp = f"{fpmcorp[0]:,}"
             record = [
                 {
-                    "corpus": c,
+                    "corpus": corpus,
                     "query": q,
                     "attribute": slice["attribute"].unique(),
                     "n attr.": f'{slice["value"].count():,}',
-                    "frq corp.": size,
+                    "frq corp.": total_frq,
                     "frq attr.": f'{slice["frq"].sum():,}',
                     "fpm corp.": fpmcorp,
                     "M rel %": f'{slice["rel"].mean():,.2f}',
@@ -349,7 +324,16 @@ def table(dataframe):
             df = pd.concat([df, pd.DataFrame.from_records(record)])
 
     column_mapping = {}
-    footnotes = ["n attr.", "frq corp.", "frq attr.", "fpm corp."]
+    footnotes = [
+        "n attr.",
+        "frq corp.",
+        "frq attr.",
+        "fpm corp.",
+        "M rel %",
+        "M reltt",
+        "M fpm",
+        "M frq",
+    ]
     number = 0
     for col in df.columns:
         if col not in footnotes:
@@ -359,39 +343,43 @@ def table(dataframe):
             column_mapping[col] = html.Small([col, html.Sup(number)])
     df.rename(column_mapping, axis=1, inplace=True)
     fmaxitems = "|".join(slice["fmaxitems"].unique())
+    maxitems_note = f"(5 years, 12 themes, etc., up to the {fmaxitems} most common)"
 
     return html.Div(
         [
             dbc.Table.from_dataframe(df, striped=True, bordered=True),
-            footnote(1, f"Maximum attributes shown: {fmaxitems}"),
-            footnote(2, "Total occurrences in a corpus"),
+            footnote(1, f"Number of text types {maxitems_note}"),
+            footnote(2, "Occurrences in the whole corpus"),
             footnote(3, "Sum of occurrences in each attribute"),
-            footnote(4, "Total frequency per million in a corpus"),
-            footnote(
-                "", "Other columns show an attribute's mean value for each statistic"
-            ),
+            footnote(4, "Frequency per million tokens in the whole corpus"),
+            footnote(5, "Mean relative density in text types"),
+            footnote(6, "Mean relative density per million in text types"),
+            footnote(7, "Mean frequency per million in text types"),
+            footnote(8, "Mean occurrences in text types"),
         ]
     )
 
 
-@cache.memoize()
-def graph(data: parse.Freqs, nicearg: str):
+def graph(df: pd.DataFrame, arg_map: list):
     """Builds bar graphs for given dataframe and query/nicearg."""
 
-    df = data.df.query("nicearg == @nicearg")
+    nicearg = arg_map[1]  # noqa: F841
+    df = df.query("nicearg == @nicearg")
+    df["corpus"] = df["corpname"].replace(env.labels)
     fig = px.bar(
         df,
         x="value",
         y="f",
-        color="corpname",
+        color="corpus",
         barmode="group",
         labels=env.labels,
         facet_col="statistic",
         facet_col_wrap=1,
         facet_row_spacing=0.1,
-        title=nicearg,
+        title=arg_map[0],
         height=len(df["statistic"].unique()) * 150 + 140,
         hover_data={
+            "corpus": False,
             "corpname": False,
             "nicearg": False,
             "value": False,
@@ -405,68 +393,144 @@ def graph(data: parse.Freqs, nicearg: str):
         xaxis={"categoryorder": "category ascending"},
         hovermode="x",
         title_font_size=24,
-        xaxis_title="attribute=" + " & ".join(df["attribute"].unique()),
+        xaxis_title=" & ".join(df["attribute"].unique()),
     )
     fig.update_yaxes(matches=None)
 
     def customize_annotation(annotation):
         text = annotation.text.split("=")[-1]
         if text in env.labels.keys():
-            text = "f=" + env.labels[text]
+            text = env.labels[text]
         annotation.update(
             text=text,
-            # font_size=14,
+            font_size=16,
         )
 
     fig.for_each_annotation(customize_annotation)
+    logging.debug(f"MADE {df.size}")
     return dcc.Graph(figure=fig)
 
 
 @dash.callback(
     Output("frequencies-content", "children"),
     Output("table", "children"),
-    Input("query-input", "n_submit"),
     Input("corpora-picker", "value"),
     Input("attribute-picker", "value"),
     Input("attribute-filter", "value"),
     Input("statistic-picker", "value"),
-    Input("query-button", "n_clicks"),
+    Input("store-frequencies", "data"),
     State("query-input", "value"),
     prevent_initial_call=True,
 )
-def draw(
-    n_submit, corpora, attribute, attribute_filter, statistics, n_clicks, input_text
-):
+def draw(corpora, attribute, attribute_filter, statistics, data, input_text):
     """Draws page content based on options."""
+    t0 = perf_counter()
+    df = pd.DataFrame.from_dict(data)
+    if not len(statistics):
+        return html.Div(), html.Div()
+    if df.empty:
+        return html.Div(), html.Div()
+    query_args = []
+    slice = pd.DataFrame()
+    _graph = []
+    _table = []
+    attrs = []
+    # filtering
+    if len(corpora):
+        query_args.append("corpname in @corpora")
+    if attribute in env.comparable_attributes:
+        attrs = [  # noqa: F841
+            env.corpora[c].get("comparable_attributes", {}).get(attribute, None)
+            for c in corpora
+        ]
+    else:
+        attrs = [attribute]  # noqa: F841
 
-    # default to display nothing
-    _graph, _table = [html.Div()] * 2
-    # clean input text
+    query_args.append("attribute in @attrs")
+    if len(attribute_filter):
+        query_args.append("value in @attribute_filter")
+    if len(query_args):
+        slice = df.query(" and ".join(query_args)).copy()
+    else:
+        slice = df.copy()
+    # melting statistics
+    melted_slice = slice.melt(
+        id_vars=[x for x in slice.columns if x not in env.statistics.keys()],
+        var_name="statistic",
+        value_name="f",
+    )
+    melted_slice.query("statistic in @statistics", inplace=True)
+    melted_slice.sort_values("value", inplace=True)
+    niceargs = melted_slice["nicearg"].unique().tolist()
+    args = input_text.split(";")
+    if len(niceargs) != len(args):
+        return html.Div(), html.Div()
+    args_map = [[args[x], niceargs[x]] for x in range(len(args))]
+    if not melted_slice.empty:
+        _graph = [graph(melted_slice, arg_map) for arg_map in args_map]
+        _table = table(df)
+    t1 = perf_counter()
+    m = f"{corpora} {attribute} {attribute_filter}"
+    logging.debug(f"graph and table: {t1-t0:.3}s {len(slice)} rows, {m}")
+    return html.Div(_graph), _table
+
+
+@dash.callback(
+    Output("store-frequencies", "data"),
+    Input("query-input", "n_submit"),
+    Input("query-button", "n_clicks"),
+    Input("corpora-picker", "value"),
+    Input("attribute-picker", "value"),
+    State("query-input", "value"),
+    prevent_initial_call=True,
+)
+def send_requests(n_submit, n_clicks, corpora, attribute, input_text):
+    t0 = perf_counter()
     if isinstance(input_text, str):
         input_text = input_text.strip()
-    # draw page
-    if input_text and corpora and attribute:
-        error = error_check(input_text, corpora, attribute)
-        if error:
-            logging.debug("error")
-            return error, html.Div()
-        call_hashes = call.make_freqs_calls(corpora, attribute, input_text)
-        data = parse.Freqs(call_hashes)
-        df_original = data.df.copy()
-        data.df = data.df.melt(
-            id_vars=[x for x in data.df.columns if x not in env.statistics.keys()],
-            var_name="statistic",
-            value_name="f",
+    if not input_text:
+        return {}
+    if not len(corpora):
+        return {}
+    if not attribute:
+        return {}
+
+    max_queries = 3
+    queries = [x.strip() for x in input_text.split(";") if x.strip()]
+    dfs = pd.DataFrame()
+    for corpus in corpora:
+        calls = []
+        if attribute in env.comparable_attributes:
+            attr = env.corpora[corpus]["comparable_attributes"][attribute]
+        else:
+            attr = attribute
+        for query in queries[:max_queries]:
+            calls.append(
+                sgex.Freqs(
+                    {
+                        "q": sgex.simple_query(query),
+                        "corpname": corpus,
+                        "fcrit": f"{attr} 0",
+                        "freq_sort": "freq",
+                        "fmaxitems": 50,
+                        "fpage": 1,
+                        "group": 0,
+                        "showpoc": 1,
+                        "showreltt": 1,
+                        "showrel": 1,
+                    }
+                )
+            )
+        package = sgex.Package(
+            calls, env.SGEX_SERVER, env.SGEX_CONFIG, session_params=env.session_params
         )
-        data.df.sort_values("value", inplace=True)
-        if attribute_filter:
-            data.df = data.df.query("value in @attribute_filter")
-        data.df = data.df.query("statistic in @statistics")
-        niceargs = data.df["nicearg"].unique().tolist()
-        _graph = [graph(data, arg) for arg in sorted(niceargs)]
-        _table = table(df_original)
-    logging.debug("graph and table")
-    return html.Div(_graph), _table
+        package.send_requests()
+        dfs = pd.concat(
+            [dfs] + [sgex.parse.freqs.freqs_json(r) for r in package.responses]
+        )
+    t1 = perf_counter()
+    logging.debug(f"{t1-t0:.3}s {len(queries)} calls")
+    return dfs.to_dict("records")
 
 
 @dash.callback(
@@ -499,30 +563,20 @@ def copy_url(n_clicks, corpora, attribute, attribute_filter, statistics, input_t
         return url
 
 
-# FIXME not working reliably
-# @dash.callback(
-#     Output("url-refresh", "search"),
-#     Input("reset-button", "n_clicks"),
-#     prevent_initial_call=True,
-# )
-# def reset_url(n_clicks):
-#     return ""
-
-
 @dash.callback(
     Output("download-frequencies", "data"),
     Input("download-frequencies-button", "n_clicks"),
     State("corpora-picker", "value"),
     State("attribute-picker", "value"),
     State("query-input", "value"),
+    State("store-frequencies", "data"),
     prevent_initial_call=True,
 )
-def download_frequencies(n_clicks, corpora, attribute, query):
+def download_frequencies(n_clicks, corpora, attribute, query, data):
     """Prepares a file of the current data sample to download."""
-
-    call_hashes = call.make_freqs_calls(corpora, attribute, query)
-    data = parse.Freqs(call_hashes)
-    data.df.reset_index(drop=True, inplace=True)
-    file = "~".join([query, "~".join(corpora), attribute])
+    df = pd.DataFrame.from_dict(data)
+    df["corpname"].replace(env.labels, inplace=True)
+    df.reset_index(drop=True, inplace=True)
+    file = "~".join(["~".join(df["corpname"].unique()), query, attribute])
     logging.debug(file)
-    return dcc.send_data_frame(data.df.to_csv, file + ".csv")
+    return dcc.send_data_frame(df.to_csv, file + ".csv")
