@@ -1,6 +1,7 @@
 **/__pycache__/
 *.log
 .sgex.log*
+.notes
 
 /.cache
 /.env
@@ -13,11 +14,5 @@ secrets/
 environment/*
 !environment/settings.py
 
-# comment this group of lines to track custom content in git
-assets/*
-call/*
-components/*
-layout/*
-markdown/*
-pages/*
-utils/*
+# comment to track custom content
+custom/*
