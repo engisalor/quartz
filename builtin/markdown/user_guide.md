@@ -25,18 +25,19 @@
 | | |
 |-|-|
 | Keep queries simple and specific | ... and take results with a grain of salt |
-| Up to 4 queries can be made at a time using semicolons | `UN; EU; SDG; WFP` |
+| Up to 3 queries can be made at a time using semicolons | `UN; EU; SDG` |
 | Nothing appears if there are missing results | `UN; non_existent_word` won't work (try again with just `UN`) |
 | Overly generic queries may break things | querying `the` exceeds retrieval limits in large corpora |
 | Abbreviations can be tricky with case insensitive searches | `UN` includes `un` - a common word in some languages |
-| Searches can include some punctuation | `U.N.` works but `;` is prohibited |
-| Punctuation may need an extra space | `end of a sentence .` (try both with/without spaces to be sure) |
+| Searches can include punctuation | `U.N.` works but `;` is prohibited |
+| Symbols may need an extra space | `end of a sentence .` (try both with/without spaces to be sure) |
 | Possessives may need a space in between | `UN's | UN 's`, `United Nations' | United Nations '` |
 | Lemmatization (word forms) isn't always intuitive | `person` gets `persons` but not `people`, `localize` doesn't get `localise` and vice versa |
+| Identical queries break things | `UN; UN` won't work |
 
 #### Settings
 
-*Parameters to choose from*
+*Parameters to select*
 
 | Data set | |
 |-|-|
@@ -47,9 +48,9 @@
 | Statistics | | |
 |-|-|-|
 | **frq** | Occurrences | How often a query occurs in a corpus |
-| **rel** | Relative density % | How often a query appears in a text type compared to the whole corpus |
-| **fpm** | Frequency per million | How often a query appears for every million words in a corpus |
-| **reltt** | Relative density per million in text type | How often a query appears for every million words in a text type |
+| **rel** | Relative density % | How often a query occurs in a text type compared to the whole corpus |
+| **fpm** | Frequency per million | How often a query occurs for every million words in a corpus |
+| **reltt** | Relative density per million in text type | How often a query occurs for every million words in a text type |
 
 - See Sketch Engine's [user guide](https://www.sketchengine.eu/guide/) for more information on interpreting corpus data, particularly the glossary and details on statistics.
 
@@ -57,7 +58,7 @@
 
 While some attributes have a single unique value (e.g., timestamps), others can have several. A `theme` attribute could include a list of topics, like Food, Education, and Sanitation. This could be tagged in a corpus as a single string with a separator between values (`Food|Education|Sanitation`).
 
-Multivalues can include repeated values, like `source.type` = `NGO|NGO`. In this case  two organizations of the same type are listed in another attribute: `source.name` = `UN Environment Programme|UN Office for the Coordination of Humanitarian Affairs`.
+Multivalues can include repeated values, like `source.type` = `NGO|NGO`. In this case two organizations of the same type are listed in a related attribute: `source.name` = `UN Environment Programme|UN Office for the Coordination of Humanitarian Affairs`.
 
 When frequencies are calculated for attributes with multivalues, a document is only counted once regardless of any repeated multivalues. If a corpus with one document has `source.type` = `NGO|NGO|NGO|IGO`, the total count for `NGO` documents is always `1`.
 
@@ -71,3 +72,16 @@ Graphs are made with [plotly](https://plotly.com/) and have interactive features
 - Hover the cursor over graph areas to see details
 - Select/deselect corpora in the legend
 - Other features are shown on the top right of a graph when hovering over it
+
+#### Advanced queries
+
+*For custom search behaviors*
+
+Queries can also be written in [Corpus Query Language](https://www.sketchengine.eu/documentation/corpus-querying/). In this case, start a query with `q,` and then write the CQL string. Semicolons are still reserved for graphing several queries at once. Prior experience with CQL is advised: ***proceed with caution***.
+
+| Query type | Example |
+|-|-|
+| Case-sensitive | `q,[word="United"][word="Nations"]|[word="UN"]` (gets these exact patterns) |
+| Part-of-speech | `q,[lemma="disaster"][tag="V.*"]` (gets `disasters strike`, `disaster was`, ...) |
+| Several CQL searches | `q,[word="UN"]; q,[word="EU"]` |
+| Mix of simple and CQL searches | `q,[word="UN"]; EU` |
