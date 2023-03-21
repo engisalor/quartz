@@ -1,4 +1,5 @@
 import logging
+import pathlib
 import urllib
 from time import perf_counter
 
@@ -16,6 +17,7 @@ from builtin.utils import convert, redirect
 
 app = get_app()
 
+page_name = pathlib.Path(__file__).stem
 dash.register_page(__name__)
 
 
@@ -39,7 +41,7 @@ def layout(
                 value=query,
                 id="query-input",
                 placeholder="Enter a word or phrase",
-                style={"minWidth": "100px"},
+                style={"minWidth": "100px", "flexGrow": 2},
             ),
         ],
     )
@@ -173,6 +175,7 @@ def layout(
                 id="table-collapse",
                 is_open=False,
             ),
+            html.Br(),
             dcc.Loading(
                 id="loading",
                 children=[html.Div([html.Div(id="frequencies-content")])],
@@ -292,14 +295,15 @@ def footnote(letter, text):
     return html.P([html.Sup(letter), text], className="footnote")
 
 
-def table(dataframe):
+def table(dataframe, args_map: list):
     """Builds a table of summary statistics."""
 
     df = pd.DataFrame()
     for c in dataframe["corpname"].unique():
         corpus = env.corpora[c].get("name")
-        for q in dataframe["nicearg"].unique():
-            slice = dataframe.query("corpname == @c and nicearg == @q")
+        for arg_map in args_map:
+            nicearg = arg_map[1]  # noqa: F841
+            slice = dataframe.query("corpname == @c and nicearg == @nicearg")
             total_frq = slice["total_frq"].unique()
             if len(total_frq) == 1:
                 total_frq = f"{total_frq[0]:,}"
@@ -309,7 +313,7 @@ def table(dataframe):
             record = [
                 {
                     "corpus": corpus,
-                    "query": q,
+                    "query": arg_map[0],
                     "attribute": slice["attribute"].unique(),
                     "n attr.": f'{slice["value"].count():,}',
                     "frq corp.": total_frq,
@@ -364,8 +368,10 @@ def graph(df: pd.DataFrame, arg_map: list):
     """Builds bar graphs for given dataframe and query/nicearg."""
 
     nicearg = arg_map[1]  # noqa: F841
-    df = df.query("nicearg == @nicearg")
-    df["corpus"] = df["corpname"].replace(env.labels)
+    df = df.query("nicearg == @nicearg").copy()
+    df["corpus"] = df["corpname"].copy()
+    df["corpus"].replace(env.labels, inplace=True)
+
     fig = px.bar(
         df,
         x="value",
@@ -468,7 +474,7 @@ def draw(corpora, attribute, attribute_filter, statistics, data, input_text):
     args_map = [[args[x], niceargs[x]] for x in range(len(args))]
     if not melted_slice.empty:
         _graph = [graph(melted_slice, arg_map) for arg_map in args_map]
-        _table = table(df)
+        _table = table(df, args_map)
     t1 = perf_counter()
     m = f"{corpora} {attribute} {attribute_filter}"
     logging.debug(f"graph and table: {t1-t0:.3}s {len(slice)} rows, {m}")
@@ -505,10 +511,16 @@ def send_requests(n_submit, n_clicks, corpora, attribute, input_text):
         else:
             attr = attribute
         for query in queries[:max_queries]:
+            query = query.strip()
+            if query.startswith("q,") and len(query) > 2:
+                query = "aword," + query[2:]
+            else:
+                query = env.simple_query_escape(query)
+                query = sgex.simple_query(query)
             calls.append(
                 sgex.Freqs(
                     {
-                        "q": sgex.simple_query(query),
+                        "q": query,
                         "corpname": corpus,
                         "fcrit": f"{attr} 0",
                         "freq_sort": "freq",
@@ -522,7 +534,11 @@ def send_requests(n_submit, n_clicks, corpora, attribute, input_text):
                 )
             )
         package = sgex.Package(
-            calls, env.SGEX_SERVER, env.SGEX_CONFIG, session_params=env.session_params
+            calls,
+            env.SGEX_SERVER,
+            env.SGEX_CONFIG,
+            session_params=env.session_params,
+            halt=False,
         )
         package.send_requests()
         dfs = pd.concat(
@@ -558,7 +574,7 @@ def copy_url(n_clicks, corpora, attribute, attribute_filter, statistics, input_t
             logging.debug("long url: removing attribute-filter")
             dt.pop("attribute_filter", None)
 
-        url = request.referrer + "?" + urllib.parse.urlencode(dt)
+        url = request.host_url + page_name + "?" + urllib.parse.urlencode(dt)
         logging.debug(url)
         return url
 
