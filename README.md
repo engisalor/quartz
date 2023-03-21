@@ -137,7 +137,7 @@ For example, the default `SGEX_CONFIG_JSON` settings are for the main Sketch Eng
 ```yaml
 # the `corpname` field for making calls to a corpus
 preloaded/susanne:
-  # a pretty name to display
+  # a display name
   name: Susanne
   # a markdown file with a description of the corpus
   md_file: builtin/markdown/preloaded/susanne.md
