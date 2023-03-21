@@ -23,7 +23,10 @@ noske:
 
 quartz:
 # starts quartz container
-	docker run -d --rm --name quartz -p 8080:8080 \
+	export SGEX_CONFIG_JSON=$(SGEX_CONFIG_JSON) SERIALIZER_KEY=$(SERIALIZER_KEY) && \
+	docker run -d --rm \
+	-e SGEX_CONFIG_JSON -e SERIALIZER_KEY \
+	--name quartz -p 8080:8080 \
 	--mount type=bind,src=$(QUARTZ_DIR),dst=/data \
     $(QUARTZ_IMAGE)
 	@echo 'URL: http://localhost:8080/'
