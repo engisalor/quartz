@@ -124,6 +124,7 @@ session_params = dict(
     backend="filesystem",
     ignored_parameters=sgex.config.credential_parameters,
     key_fn=sgex.call.call.create_custom_key,
+    allowable_codes=[200, 400],
 )
 # get initial calls
 premade_calls = {
