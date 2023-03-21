@@ -7,7 +7,7 @@
 !requirements.txt
 !environment/.env
 !environment/settings.py
-
+!environment/labels.yml
 !builtin/
 !custom/
 
