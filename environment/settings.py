@@ -31,6 +31,7 @@ ASSETS_DIR = os.environ["ASSETS_DIR"]
 PAGES_DIR = os.environ["PAGES_DIR"]
 LAYOUT_MODULE = os.environ["LAYOUT_MODULE"]
 CORPORA_FILE = os.environ["CORPORA_FILE"]
+LABELS_FILE = os.environ["LABELS_FILE"]
 
 
 # functions
@@ -164,8 +165,8 @@ statistics = {
     "reltt": "relative text type fpm",
 }
 
-labels = io.load_yaml("environment/labels.yml")
+labels = io.load_yaml(LABELS_FILE)
 if labels:
-    labels |= statistics
+    labels = statistics | labels
 else:
     labels = statistics

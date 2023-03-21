@@ -8,8 +8,9 @@ get_started:
 # populates working dir with files for a new project
 	cp -i builtin/config/environment.env environment/.env
 	cp -i builtin/config/environment.env.dev environment/.env.dev
-	touch environment/labels.yml
-	mkdir custom
+	cp -i builtin/config/corpora-ske.yml custom/config/corpora-ske.yml
+	cp -i builtin/config/corpora-noske.yml custom/config/corpora-noske.yml
+	cp -i builtin/config/labels.yml custom/config/labels.yml
 
 
 noske:
