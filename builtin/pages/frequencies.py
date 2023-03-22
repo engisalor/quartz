@@ -590,9 +590,10 @@ def copy_url(n_clicks, corpora, attribute, attribute_filter, statistics, input_t
 )
 def download_frequencies(n_clicks, corpora, attribute, query, data):
     """Prepares a file of the current data sample to download."""
-    df = pd.DataFrame.from_dict(data)
-    df["corpname"].replace(env.labels, inplace=True)
-    df.reset_index(drop=True, inplace=True)
-    file = "~".join(["~".join(df["corpname"].unique()), query, attribute])
-    logging.debug(file)
-    return dcc.send_data_frame(df.to_csv, file + ".csv")
+    if data:
+        df = pd.DataFrame.from_dict(data)
+        df["corpname"].replace(env.labels, inplace=True)
+        df.reset_index(drop=True, inplace=True)
+        file = "~".join(["~".join(df["corpname"].unique()), query, attribute])
+        logging.debug(file)
+        return dcc.send_data_frame(df.to_csv, file + ".csv")
