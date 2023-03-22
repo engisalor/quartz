@@ -1,7 +1,6 @@
 """Components for the Corpora page."""
 import uuid
 
-import pandas as pd
 import plotly.express as px
 from dash import MATCH, Input, Output, State, callback, dash_table, dcc, html
 from dash.dash_table.Format import Format
@@ -69,7 +68,7 @@ class CorpusDetailsAIO(html.Div):
                     [
                         html.Div(
                             [
-                                html.H3("Sizes"),
+                                html.H5("Sizes"),
                                 dash_table.DataTable(
                                     data=sizes.sort_values(
                                         "size", ascending=False
@@ -81,7 +80,7 @@ class CorpusDetailsAIO(html.Div):
                         ),
                         html.Div(
                             [
-                                html.H3("Attributes"),
+                                html.H5("Attributes"),
                                 dash_table.DataTable(
                                     data=structures.to_dict("records"),
                                     columns=make_columns(structures.columns),
@@ -91,7 +90,7 @@ class CorpusDetailsAIO(html.Div):
                         ),
                         html.Div(
                             [
-                                html.H3("Attribute details"),
+                                html.H5("Attribute details"),
                                 dcc.Dropdown(
                                     clearable=False,
                                     options=attrs,
@@ -121,22 +120,15 @@ class CorpusDetailsAIO(html.Div):
     def generate_chart(attribute, corpus):
         df = env.premade_calls[corpus]["ttypes_df"].copy()
         slice = df.query("attribute == @attribute")
-        max_size = 50
-        if slice.size > max_size:
-            slice = df.query("attribute == @attribute")
-            slice = slice.sort_values("frq", ascending=False)
-            tops = slice.iloc[:max_size]
-            others = pd.DataFrame(
-                {
-                    "str": ["<other>"],
-                    "frq": [slice.iloc[max_size:]["frq"].sum()],
-                    "relfreq": [None],
-                    "attribute": attribute,
-                }
-            )
-            slice = pd.concat([tops, others])
-
-        fig = px.pie(slice, values="frq", names="str", hole=0.3, height=500, width=500)
+        fig = px.pie(
+            slice,
+            values="frq",
+            names="str",
+            hole=0.3,
+            height=500,
+            width=500,
+            title=f"{len(slice)} most common value(s)",
+        )
         fig.update_traces(textposition="inside", textinfo="label")
         fig.update_layout(
             showlegend=False,
@@ -145,6 +137,5 @@ class CorpusDetailsAIO(html.Div):
             ),
         )
         return [
-            html.H4(f"{max_size} most common values"),
             dcc.Graph(figure=fig),
         ]
