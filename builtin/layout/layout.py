@@ -2,6 +2,8 @@ import dash
 import dash_bootstrap_components as dbc
 from dash import html
 
+from builtin.version import version
+
 
 def sidebar():
     sidebar_contents = [
@@ -10,6 +12,15 @@ def sidebar():
         )
         for page in dash.page_registry.values()
     ]
+
+    version_tag = html.Small(f"v{version}")
+    source_code = dbc.NavLink(
+        [html.Span([html.I(className="bi bi-github"), version_tag])],
+        href="https://github.com/engisalor/quartz",
+        active="exact",
+    )
+
+    sidebar_footer = [source_code]
 
     return html.Div(
         [
@@ -25,6 +36,13 @@ def sidebar():
                 sidebar_contents,
                 vertical=True,
                 pills=True,
+                className="sidebar-content",
+            ),
+            dbc.Nav(
+                sidebar_footer,
+                vertical=True,
+                pills=True,
+                className="sidebar-footer",
             ),
         ],
         className="sidebar",
