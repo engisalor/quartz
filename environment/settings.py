@@ -1,4 +1,5 @@
 import collections
+import json
 import logging
 import os
 from os.path import dirname, join
@@ -32,6 +33,7 @@ PAGES_DIR = os.environ["PAGES_DIR"]
 LAYOUT_MODULE = os.environ["LAYOUT_MODULE"]
 CORPORA_FILE = os.environ["CORPORA_FILE"]
 LABELS_FILE = os.environ["LABELS_FILE"]
+FLASK_CACHE_CONFIG = json.loads(os.environ["FLASK_CACHE_CONFIG"])
 
 
 # functions
