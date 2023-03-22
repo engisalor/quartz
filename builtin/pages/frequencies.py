@@ -168,7 +168,7 @@ def layout(
     return html.Div(
         [
             dcc.Store(id="store-frequencies", storage_type="session"),
-            html.H1("Frequencies"),
+            html.H2("Frequencies"),
             top_panel,
             dbc.Collapse(
                 html.Div(id="table"),
