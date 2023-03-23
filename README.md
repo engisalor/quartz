@@ -37,7 +37,7 @@ Add a Python virtual environment and install dependencies:
 
 ```bash
 python3 -m venv .venv
-source $PWD/.venv/bin/activate
+source ${PWD}/.venv/bin/activate
 pip install --upgrade pip
 pip install -r requirements.txt
 ```
