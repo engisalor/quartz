@@ -6,6 +6,7 @@ include .env
 
 get_started:
 # populates working dir with files for a new project
+	mkdir -p custom/config
 	cp -i builtin/config/environment.env environment/.env
 	cp -i builtin/config/environment.env.dev environment/.env.dev
 	cp -i builtin/config/corpora-ske.yml custom/config/corpora-ske.yml
