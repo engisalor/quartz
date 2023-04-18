@@ -581,9 +581,6 @@ def copy_url(n_clicks, corpora, attribute, attribute_filter, statistics, input_t
             "attribute": attribute,
             "attribute_filter": ";".join(attribute_filter),
         }
-        if len(";".join(attribute_filter)) > 500:
-            logging.debug("long url: removing attribute-filter")
-            dt.pop("attribute_filter", None)
 
         url = request.host_url + page_name + "?" + urllib.parse.urlencode(dt)
         logging.debug(url)
