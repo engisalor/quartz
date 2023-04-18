@@ -26,7 +26,7 @@ def sidebar():
         [
             html.Div(
                 html.A(
-                    html.Img(src="assets/sidebar-icon.png", className="sidebar-icon"),
+                    html.Img(src="assets/sidebar-icon.svg", className="sidebar-icon"),
                     href="/",
                 )
             ),
