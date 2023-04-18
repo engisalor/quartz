@@ -17,6 +17,7 @@ from builtin.utils import convert, redirect
 
 app = get_app()
 
+max_queries = 3
 page_name = pathlib.Path(__file__).stem
 dash.register_page(__name__)
 
@@ -41,7 +42,7 @@ def layout(
                 value=query,
                 id="query-input",
                 placeholder="Enter a word or phrase",
-                style={"minWidth": "100px", "flexGrow": 2},
+                style={"minWidth": "180px", "flexGrow": 2},
             ),
         ],
     )
@@ -475,9 +476,11 @@ def draw(corpora, attribute, attribute_filter, statistics, data, input_text):
     )
     melted_slice.query("statistic in @statistics", inplace=True)
     melted_slice.sort_values("value", inplace=True)
-    niceargs = melted_slice["nicearg"].unique().tolist()
-    args = input_text.split(";")
+    niceargs = slice["nicearg"].unique().tolist()
+    queries = [x.strip() for x in input_text.split(";") if x.strip()]
+    args = queries[:max_queries]
     if len(niceargs) != len(args):
+        logging.error(f"len(niceargs) {len(niceargs)} != len(args) {len(args)}")
         return html.Div(), html.Div()
     args_map = [[args[x], niceargs[x]] for x in range(len(args))]
     if not melted_slice.empty:
@@ -509,8 +512,8 @@ def send_requests(n_submit, n_clicks, corpora, attribute, input_text):
     if not attribute:
         return {}
 
-    max_queries = 3
     queries = [x.strip() for x in input_text.split(";") if x.strip()]
+    queries = queries[:max_queries]
     dfs = pd.DataFrame()
     for corpus in corpora:
         calls = []
@@ -518,12 +521,11 @@ def send_requests(n_submit, n_clicks, corpora, attribute, input_text):
             attr = env.corpora[corpus]["comparable_attributes"][attribute]
         else:
             attr = attribute
-        for query in queries[:max_queries]:
+        for query in queries:
             query = query.strip()
             if query.startswith("q,") and len(query) > 2:
                 query = "aword," + query[2:]
             else:
-                query = env.simple_query_escape(query)
                 query = sgex.simple_query(query)
             calls.append(
                 sgex.Freqs(
@@ -547,6 +549,7 @@ def send_requests(n_submit, n_clicks, corpora, attribute, input_text):
             env.SGEX_CONFIG,
             session_params=env.session_params,
             halt=False,
+            max_responses=max_queries,
         )
         package.send_requests()
         dfs = pd.concat(
