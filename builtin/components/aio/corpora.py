@@ -125,12 +125,17 @@ class CorpusDetailsAIO(html.Div):
             values="frq",
             names="str",
             hole=0.3,
-            height=500,
-            width=500,
+            width=320,
             title=f"{len(slice)} most common value(s)",
         )
         fig.update_traces(textposition="inside", textinfo="label")
         fig.update_layout(
+            margin=dict(
+                l=0,
+                r=0,
+                t=60,
+                b=20,
+            ),
             showlegend=False,
             hoverlabel=dict(
                 font_size=16,
