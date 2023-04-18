@@ -371,6 +371,11 @@ def graph(df: pd.DataFrame, arg_map: list):
     df = df.query("nicearg == @nicearg").copy()
     df["corpus"] = df["corpname"].copy()
     df["corpus"].replace(env.labels, inplace=True)
+    df.sort_values(["corpus", "f", "value"], inplace=True)
+
+    title = arg_map[1]
+    if arg_map[0] in env.labels.keys():
+        title = env.labels[arg_map[0]]
 
     fig = px.bar(
         df,
@@ -382,7 +387,7 @@ def graph(df: pd.DataFrame, arg_map: list):
         facet_col="statistic",
         facet_col_wrap=1,
         facet_row_spacing=0.1,
-        title=arg_map[0],
+        title=title,
         height=len(df["statistic"].unique()) * 150 + 140,
         hover_data={
             "corpus": False,
@@ -392,13 +397,16 @@ def graph(df: pd.DataFrame, arg_map: list):
             "statistic": False,
             "f": ":,",
         },
-        category_orders={"corpname": sorted(df["corpname"].unique())},
+        category_orders={
+            "corpname": sorted(df["corpname"].unique()),
+            "statistic": sorted(df["statistic"].unique()),
+        },
     )
     fig.update_layout(
         plot_bgcolor="#ffffff",
         xaxis={"categoryorder": "category ascending"},
         hovermode="x",
-        title_font_size=24,
+        title_font_size=18,
         xaxis_title=" & ".join(df["attribute"].unique()),
     )
     fig.update_yaxes(matches=None)
