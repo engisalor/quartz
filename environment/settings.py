@@ -36,44 +36,6 @@ LABELS_FILE = os.environ["LABELS_FILE"]
 FLASK_CACHE_CONFIG = json.loads(os.environ["FLASK_CACHE_CONFIG"])
 
 
-# functions
-# fix issue with sgex 0.6.2 parsing behavior (for corpora w/ labeled attributes)
-# TODO remove when addressed upstream
-def clean_heads(heads) -> list:
-    """Extracts each block's fcrit attribute: ``head[0]["id"]``."""
-    if len([x for x in heads if x]):
-        return [head[0].get("id") for head in heads]
-    else:
-        return None
-
-
-sgex.parse.freqs.clean_heads = clean_heads
-
-
-escape_symbols = {
-    '"': r'\\"',
-    "$": r"\$",
-    "(": r"\(",
-    ")": r"\)",
-    "+": r"\+",
-    "/": r"\/",
-    "[": r"\[",
-    "]": r"\]",
-    "^": r"\^",
-    "{": r"\{",
-    "}": r"\}",
-    "\\": "\\\\\\\\",
-}
-
-
-# fix issue with sgex 0.6.2 simple_query, breaks when searching for reserved symbols
-# (use this function before passing queries to simple_query)
-# TODO remove when addressed upstream
-def simple_query_escape(query: str):
-    return "".join([escape_symbols.get(c, c) for c in query])
-
-
-# for running corpus text type analysis (needed for initial configuration)
 def premake_calls(corpus, SGEX_SERVER, SGEX_CONFIG, session_params):
     # corp_info call
     p = sgex.Package(
