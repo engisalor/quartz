@@ -1,6 +1,7 @@
 /* query input, settings button, etc. */
 .top-panel {
     display: inline-flex;
+    flex-wrap: wrap;
     margin-bottom: 18px;
     width:100%;
 }
@@ -43,4 +44,11 @@
 
 .svg-inline--fa:hover {
     color: black;
+}
+
+/* small screens */
+@media (max-width: 400px) {
+    .popover {
+        width: 100%;
+    }
 }

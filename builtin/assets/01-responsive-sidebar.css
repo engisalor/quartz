@@ -1,6 +1,55 @@
 /* Adapted from: https://community.plotly.com/t/sidebar-with-icons-expands-on-hover-and-other-cool-sidebars/67318 */
 
-@media (min-width: 25em) {
+.sidebar {
+  background-color: white;
+
+}
+
+.sidebar .nav-link span {
+  color: #5065A8;
+}
+
+/* Small screens */
+@media (max-width: 480px) {
+  h2 {
+    font-size: 8vw }
+
+  .sidebar .nav-pills .nav-link.active {
+    background-color: #c9e3f2;
+  }
+
+  .sidebar-icon {
+    width: 0px;
+    opacity: 0%;
+  }
+
+  .sidebar-bars {
+    opacity: 0%;
+    height: 0px;
+  }
+
+  .sidebar {
+    text-align: center;
+    width: 100%;
+    height: auto;
+    position: relative;
+  }
+  .sidebar a {
+    float: left;
+  }
+
+  /* hide nav-link icons by default */
+  /* .sidebar .nav-link i {
+    visibility: hidden;
+    opacity: 1;
+  } */
+
+  div.content {margin-left: 0;}
+
+}
+
+/* big screens */
+@media (min-width: 481px) {
 
   /* This creates a skinny side bar fixed to the left of the page */
   .sidebar {
@@ -10,7 +59,6 @@
     bottom: 0;
     width: 5rem;
     padding: 2rem 1rem;
-    background-color: white;
     z-index: 1050;
     transition: width 0.1s ease-in-out;
     height: 100%;
@@ -109,7 +157,6 @@
   .sidebar:hover .sidebar-icon {
     display: flex;
     transition: width 0.1s ease-in-out;
-    justify-content: center;
     width: 100%;
   }
 
