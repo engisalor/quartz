@@ -145,6 +145,7 @@ def layout(
                 target="guide-button",
                 trigger="click",
                 style={"overflow": "scroll"},
+                placement="bottom",
             ),
             dbc.Popover(
                 id="settings-box",
