@@ -1,136 +1,131 @@
-import collections
-import json
 import logging
 import os
+from dataclasses import dataclass
 from os.path import dirname, join
+from pathlib import Path
 
 import pandas as pd
-import sgex
-from cryptography.fernet import Fernet
-from dotenv import load_dotenv
-from requests_cache import SerializerPipeline, Stage, pickle_serializer
+from dotenv import dotenv_values
+from sgex.job import Job
+from sgex.util import read_yaml
 
-from builtin.utils import io
+from builtin.utils.io import load_yaml
 
 # logging
 logging.basicConfig(
     format="%(levelname)s - %(module)s.%(funcName)s - %(message)s", level=logging.INFO
 )
 
-# environment
-dotenv_path = join(dirname(__file__), os.getenv("ENVIRONMENT_FILE"))
-load_dotenv(dotenv_path=dotenv_path, override=True)
-# env variables
-HOST = os.environ["HOST"]
-PORT = int(os.environ["PORT"])
-DASH_DEBUG = bool(os.environ["DASH_DEBUG"])
-REDIRECT_POLICY = os.environ["REDIRECT_POLICY"]
-SGEX_SERVER = os.environ["SGEX_SERVER"]
-SGEX_CONFIG = sgex.config.load("SGEX_CONFIG_JSON")
-SERIALIZER_KEY = Fernet(os.environ["SERIALIZER_KEY"])
-ASSETS_DIR = os.environ["ASSETS_DIR"]
-PAGES_DIR = os.environ["PAGES_DIR"]
-LAYOUT_MODULE = os.environ["LAYOUT_MODULE"]
-CORPORA_FILE = os.environ["CORPORA_FILE"]
-LABELS_FILE = os.environ["LABELS_FILE"]
-FLASK_CACHE_CONFIG = json.loads(os.environ["FLASK_CACHE_CONFIG"])
+
+# classes
+@dataclass
+class ENV:
+    """Dataclass with environment variables."""
+
+    def __init__(self):
+        dotenv_path = join(dirname(__file__), os.getenv("ENVIRONMENT_FILE"))
+        dt = dotenv_values(dotenv_path) | {
+            k: v for k, v in os.environ.items() if k.startswith("SGEX_")
+        }
+        for k, v in dt.items():
+            if v.lower() == "true":
+                v = True
+            elif v.lower() == "false":
+                v = False
+            elif k == "ACTIVE_DIR":
+                v = Path(v)
+            elif k == "MAX_QUERIES":
+                v = int(v)
+            setattr(self, k, v)
 
 
-def premake_calls(corpus, SGEX_SERVER, SGEX_CONFIG, session_params):
-    # corp_info call
-    p = sgex.Package(
-        sgex.CorpInfo({"corpname": corpus, "struct_attr_stats": 1}),
-        SGEX_SERVER,
-        SGEX_CONFIG,
-        session_params=session_params,
-    )
-    logging.debug(f"CORP_INFO {corpus}")
-    p.send_requests()
-    structures_df = sgex.parse.corp_info.structures_json(p.responses[0])
-    sizes_df = sgex.parse.corp_info.sizes_json(p.responses[0])
-    # attributes list
-    attributes = structures_df["structure"] + "." + structures_df["attribute"]
-    # text type calls
-    wordlist_params = {
-        "corpname": corpus,
-        "wlattr": None,
-        "wlmaxitems": 50,
-        "wlsort": "frq",
-        "wlpat": ".*",
-        "wlminfreq": 1,
-        "wlicase": 1,
-        "wlmaxfreq": 0,
-        "wltype": "simple",
-        "include_nonwords": 1,
-        "random": 0,
-        "relfreq": 1,
-        "reldocf": 0,
-        "wlpage": 1,
-    }
-    ttype_calls = []
-    for attr in attributes:
-        params = {**wordlist_params, "wlattr": attr}
-        ttype_calls.append(sgex.Wordlist(params))
-    ttype_package = sgex.Package(
-        ttype_calls, SGEX_SERVER, SGEX_CONFIG, session_params=session_params
-    )
-    logging.debug(f"TTYPES {corpus}")
-    ttype_package.send_requests()
-    # most common text types
-    dfs = [sgex.parse.wordlist.ttype_analysis_json(r) for r in ttype_package.responses]
-    ttypes_df = pd.concat(dfs)
-    return {
-        "sizes_df": sizes_df,
-        "structures_df": structures_df,
-        "attributes_ls": attributes,
-        "ttypes_df": ttypes_df,
-    }
+@dataclass
+class CorpData:
+    """Dataclass with corpus data."""
+
+    def __init__(self):
+        # load corpora file
+        self.dt = read_yaml(env.ACTIVE_DIR / Path("config/corpora.yml"))
+        corp_ids = list(self.dt.keys())
+        # make corpinfo calls
+        corpinfo_calls = [
+            {"call_type": "CorpInfo", "corpname": x, "struct_attr_stats": 1}
+            for x in corp_ids
+        ]
+        j = Job(verbose=True, thread=True, params=corpinfo_calls)
+        j.run()
+        # make wordlist calls (text type data)
+        wordlist_params = {
+            "call_type": "Wordlist",
+            "wlattr": None,
+            "wlmaxitems": env.MAX_ITEMS,
+            "wlsort": "frq",
+            "wlpat": ".*",
+            "wlminfreq": 1,
+            "wlicase": 1,
+            "wlmaxfreq": 0,
+            "wltype": "simple",
+            "include_nonwords": 1,
+            "random": 0,
+            "relfreq": 1,
+            "reldocf": 0,
+            "wlpage": 1,
+        }
+        wordlist_calls = []
+        self.structures = pd.DataFrame()
+        self.sizes = pd.DataFrame()
+
+        def get_label(row: dict) -> str | None:
+            return self.dt.get(row["corpus"]).get("label").get(row["attr"], row["attr"])
+
+        def is_in_list(row: dict, key: str) -> bool:
+            return row["attr"] in self.dt.get(row["corpus"]).get(key, [])
+
+        for x in range(len(corp_ids)):
+            _structures = j.data.corpinfo[x].structures_from_json()
+            _structures["corpus"] = corp_ids[x]
+            _structures["attr"] = (
+                _structures["structure"] + "." + _structures["attribute"]
+            )
+            _structures["comparable"] = _structures.apply(
+                is_in_list, key="comparable", axis=1
+            )
+            _structures["label"] = _structures.apply(get_label, axis=1)
+            _structures["exclude"] = _structures.apply(
+                is_in_list, key="exclude", axis=1
+            )
+            _structures["choropleth"] = _structures.apply(
+                is_in_list, key="choropleth", axis=1
+            )
+            self.structures = pd.concat([self.structures, _structures])
+            _sizes = j.data.corpinfo[x].sizes_from_json()
+            _sizes["corpus"] = corp_ids[x]
+            self.sizes = pd.concat([self.sizes, _sizes])
+            wordlist_calls.extend(
+                [
+                    {**wordlist_params, "wlattr": attr, "corpname": corp_ids[x]}
+                    for attr in _structures["attr"]
+                ]
+            )
+        j = Job(verbose=True, thread=True, params=wordlist_calls)
+        j.run()
+        self.ttypes = pd.DataFrame()
+        for call in j.data.wordlist:
+            _ttypes = call.df_from_json()
+            _ttypes["corpus"] = call.params["corpname"]
+            self.ttypes = pd.concat([self.ttypes, _ttypes])
 
 
-# corpora settings
-corpora = io.load_yaml(CORPORA_FILE)
-dicts = [corpora.get(k).get("comparable_attributes", {}) for k in corpora.keys()]
-attrs = [y for x in dicts for y in x.keys()]
-comparable_attributes = [i for i, c in collections.Counter(attrs).items() if c > 1]
-
-
-# SGEX settings
-# to make a key (supply securely afterward)
-# Fernet.generate_key().decode()
-# define the serializer
-serializer = SerializerPipeline(
-    [
-        pickle_serializer,
-        Stage(dumps=SERIALIZER_KEY.encrypt, loads=SERIALIZER_KEY.decrypt),
-    ],
-    is_binary=True,
-)
-# parameters for the `requests-cache` session
-session_params = dict(
-    cache_name="data/requests_cache",
-    serializer=serializer,
-    backend="filesystem",
-    ignored_parameters=sgex.config.credential_parameters,
-    key_fn=sgex.call.call.create_custom_key,
-    allowable_codes=[200, 400],
-)
-# get initial calls
-premade_calls = {
-    corpus: premake_calls(corpus, SGEX_SERVER, SGEX_CONFIG, session_params)
-    for corpus in list(corpora.keys())
-}
-
-
-# graph labels
-statistics = {
+env = ENV()
+corp_data = CorpData()
+stats = {
+    "reltt": "relative text type fpm",
     "frq": "occurrences",
     "rel": "relative density %",
     "fpm": "frequency per million",
-    "reltt": "relative text type fpm",
 }
-
-labels = io.load_yaml(LABELS_FILE)
-if labels:
-    labels = statistics | labels
+labels_file = env.ACTIVE_DIR / Path("config/labels.yml")
+if labels_file.exists():
+    labels = load_yaml(labels_file)
 else:
-    labels = statistics
+    labels = {}
