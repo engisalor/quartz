@@ -1,18 +1,11 @@
 **/__pycache__/
-*.log
-.sgex.log*
-.notes
-
-/.cache
 /.env
 /.venv/
 /.venv-dev/
-
-/config.yml
 data/
-secrets/
-environment/*
-!environment/settings.py
+
+.env
+.env.dev
 
 # comment to track custom content
 custom/*

@@ -5,8 +5,8 @@
 !gunicorn_config.py
 !Procfile
 !requirements.txt
-!environment/.env
-!environment/settings.py
+!.env
+!settings.py
 !builtin/
 !custom/
 
