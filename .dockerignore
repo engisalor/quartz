@@ -7,7 +7,6 @@
 !requirements.txt
 !.env
 !settings.py
-!builtin/
 !custom/
 
 # comment to exclude data from container image

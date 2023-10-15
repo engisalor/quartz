@@ -2,14 +2,11 @@ import logging
 import os
 from dataclasses import dataclass
 from os.path import dirname, join
-from pathlib import Path
 
 import pandas as pd
 from dotenv import dotenv_values
 from sgex.job import Job
 from sgex.util import read_yaml
-
-from builtin.utils.io import load_yaml
 
 # logging
 logging.basicConfig(
@@ -32,8 +29,6 @@ class ENV:
                 v = True
             elif v.lower() == "false":
                 v = False
-            elif k == "ACTIVE_DIR":
-                v = Path(v)
             elif k == "MAX_QUERIES":
                 v = int(v)
             setattr(self, k, v)
@@ -45,7 +40,7 @@ class CorpData:
 
     def __init__(self):
         # load corpora file
-        self.dt = read_yaml(env.ACTIVE_DIR / Path("config/corpora.yml"))
+        self.dt = read_yaml(env.CORPORA_YML)
         corp_ids = list(self.dt.keys())
         # make corpinfo calls
         corpinfo_calls = [
@@ -119,13 +114,8 @@ class CorpData:
 env = ENV()
 corp_data = CorpData()
 stats = {
-    "reltt": "relative text type fpm",
-    "frq": "occurrences",
-    "rel": "relative density %",
-    "fpm": "frequency per million",
+    "reltt": "reltt - relative text type fpm",
+    "frq": "frq - occurrences",
+    "rel": "rel - relative density %",
+    "fpm": "fpm - frequency per million",
 }
-labels_file = env.ACTIVE_DIR / Path("config/labels.yml")
-if labels_file.exists():
-    labels = load_yaml(labels_file)
-else:
-    labels = {}

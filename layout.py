@@ -2,7 +2,7 @@ import dash
 import dash_bootstrap_components as dbc
 from dash import html
 
-from builtin.version import version
+from version import version
 
 
 def sidebar():

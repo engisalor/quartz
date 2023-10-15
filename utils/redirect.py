@@ -41,7 +41,7 @@ def frequencies_policy(dt):
     # unsupported statistics
     for stat in dt["statistics"].split(";"):
         if stat not in stats.keys():
-            logging.debug(f"rejest statistic: {stat}")
+            logging.debug(f"reject statistic: {stat}")
             return redirect(request.path)
 
 

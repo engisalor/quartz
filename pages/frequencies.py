@@ -1,5 +1,4 @@
 import logging
-import pathlib
 import urllib
 from collections import Counter
 from pathlib import Path
@@ -13,14 +12,14 @@ from flask import request
 from sgex.job import Job
 from sgex.query import simple_query
 
-from builtin.components.aio import aio
-from builtin.pages import frequencies_viz
-from builtin.utils import convert, redirect
+from components.aio import aio
+from pages import frequencies_viz
 from settings import corp_data, env, stats
+from utils import convert, redirect
 
 app = get_app()
 
-page_name = pathlib.Path(__file__).stem
+page_name = Path(__file__).stem
 dash.register_page(__name__)
 
 
@@ -143,9 +142,7 @@ def layout(
                 title="Show/hide user guide",
             ),
             dbc.Popover(
-                dbc.PopoverBody(
-                    aio.MarkdownFileAIO(env.ACTIVE_DIR / Path("markdown/user_guide.md"))
-                ),
+                dbc.PopoverBody(aio.MarkdownFileAIO(env.GUIDE_MD)),
                 target="guide-button",
                 trigger="click",
                 style={"overflow": "scroll"},

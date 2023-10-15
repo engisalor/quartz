@@ -1,13 +1,12 @@
 """Components for the Corpora page."""
 import uuid
-from pathlib import Path
 
 import plotly.express as px
 from dash import MATCH, Input, Output, State, callback, dash_table, dcc, html
 from dash.dash_table.Format import Format
 
-from builtin.components.aio.aio import MarkdownFileAIO
-from settings import corp_data, env
+from components.aio.aio import MarkdownFileAIO
+from settings import corp_data
 
 table_props = {
     "style_table": {"max-height": 181, "max-width": 500, "overflowY": "auto"},
@@ -69,9 +68,7 @@ class CorpusDetailsAIO(html.Div):
 
         super().__init__(
             [
-                MarkdownFileAIO(
-                    env.ACTIVE_DIR / Path("markdown") / Path(corpus).with_suffix(".md")
-                ),
+                MarkdownFileAIO(corp_data.dt[corpus]["md_file"]),
                 html.Div(
                     [
                         html.Div(

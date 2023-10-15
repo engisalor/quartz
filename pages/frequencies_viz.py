@@ -5,7 +5,7 @@ import pandas as pd
 import plotly.express as px
 from dash import dash_table, dcc, html
 
-from settings import corp_data, labels
+from settings import corp_data
 
 
 def data_table(data: pd.DataFrame, args_map: list):
@@ -114,10 +114,6 @@ def bar_chart(data: pd.DataFrame, arg_map: list):
     df["cql"] = df["arg"].apply(lambda t: "<br>".join(textwrap.wrap(t, 80)))
     df["val"] = df["value"].apply(lambda t: "<br>".join(textwrap.wrap(t, 80)))
 
-    title = arg_map[0]
-    if arg_map[0] in labels.keys():
-        title = labels[arg_map[0]]
-
     _attrs = df["attribute"].unique()
     corpora = df["corpname"].unique()
     attrs = []
@@ -131,7 +127,6 @@ def bar_chart(data: pd.DataFrame, arg_map: list):
         y="",
         color="corpus",
         barmode="group",
-        labels=labels,
         facet_col="statistic",
         facet_col_wrap=1,
         facet_row_spacing=0.1,
@@ -153,7 +148,7 @@ def bar_chart(data: pd.DataFrame, arg_map: list):
     fig.update_layout(
         hovermode="x unified",
         plot_bgcolor="#ffffff",
-        title=dict(text=title, font=dict(size=22), yref="container"),
+        title=dict(text=arg_map[0], font=dict(size=22), yref="container"),
         xaxis_title="",
         yaxis_title="",
         xaxis={"categoryorder": "category ascending"},

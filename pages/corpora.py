@@ -1,11 +1,9 @@
-from pathlib import Path
-
 import dash
 import dash_bootstrap_components as dbc
 from dash import Input, Output, get_app, html
 
-from builtin.components.aio.aio import MarkdownFileAIO
-from builtin.components.aio.corpora import CorpusDetailsAIO
+from components.aio.aio import MarkdownFileAIO
+from components.aio.corpora import CorpusDetailsAIO
 from settings import corp_data, env
 
 app = get_app()
@@ -16,7 +14,7 @@ dash.register_page(__name__)
 
 layout = html.Div(
     [
-        MarkdownFileAIO(env.ACTIVE_DIR / Path("markdown/corpora.md")),
+        MarkdownFileAIO(env.CORPORA_MD),
         html.Br(),
         dbc.Tabs(
             [
