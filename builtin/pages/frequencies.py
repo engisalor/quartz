@@ -16,7 +16,7 @@ from sgex.query import simple_query
 from builtin.components.aio import aio
 from builtin.pages import frequencies_viz
 from builtin.utils import convert, redirect
-from environment.settings import corp_data, env, stats
+from settings import corp_data, env, stats
 
 app = get_app()
 

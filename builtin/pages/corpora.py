@@ -6,7 +6,7 @@ from dash import Input, Output, get_app, html
 
 from builtin.components.aio.aio import MarkdownFileAIO
 from builtin.components.aio.corpora import CorpusDetailsAIO
-from environment.settings import corp_data, env
+from settings import corp_data, env
 
 app = get_app()
 

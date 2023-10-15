@@ -7,7 +7,7 @@ import flask
 from dash import html
 
 from builtin.utils import redirect
-from environment.settings import env
+from settings import env
 
 layout = importlib.import_module(env.ACTIVE_DIR.name.strip("/") + ".layout.layout")
 server = flask.Flask(__name__)

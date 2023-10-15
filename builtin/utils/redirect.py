@@ -4,7 +4,7 @@ import logging
 import dash
 from flask import redirect, request
 
-from environment.settings import corp_data, stats
+from settings import corp_data, stats
 
 
 def global_policy():

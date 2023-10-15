@@ -5,7 +5,7 @@ import pandas as pd
 import plotly.express as px
 from dash import dash_table, dcc, html
 
-from environment.settings import corp_data, labels
+from settings import corp_data, labels
 
 
 def data_table(data: pd.DataFrame, args_map: list):

@@ -7,7 +7,7 @@ from dash import MATCH, Input, Output, State, callback, dash_table, dcc, html
 from dash.dash_table.Format import Format
 
 from builtin.components.aio.aio import MarkdownFileAIO
-from environment.settings import corp_data, env
+from settings import corp_data, env
 
 table_props = {
     "style_table": {"max-height": 181, "max-width": 500, "overflowY": "auto"},
