@@ -4,7 +4,7 @@ import logging
 import dash
 from flask import redirect, request
 
-import environment.settings as env
+from environment.settings import corp_data, stats
 
 
 def global_policy():
@@ -35,12 +35,12 @@ def frequencies_policy(dt):
         return redirect(request.path)
     # unsupported corpora
     for corpus in dt["corpora"].split(";"):
-        if corpus not in env.corpora.keys():
+        if corpus not in corp_data.dt.keys():
             logging.debug(f"reject corpus: {corpus}")
             return redirect(request.path)
     # unsupported statistics
     for stat in dt["statistics"].split(";"):
-        if stat not in env.statistics.keys():
+        if stat not in stats.keys():
             logging.debug(f"rejest statistic: {stat}")
             return redirect(request.path)
 
@@ -48,7 +48,7 @@ def frequencies_policy(dt):
 def corpora(corpora):
     # default to first corpus
     if not len(corpora):
-        corpora = [k for k in env.corpora.keys()]
+        corpora = [k for k in corp_data.dt.keys()]
         return [corpora[0]]
     else:
         return corpora.split(";")
@@ -57,7 +57,7 @@ def corpora(corpora):
 def statistics(statistics):
     # default to first statistic
     if not len(statistics):
-        return [list(env.statistics.keys())[0]]
+        return [list(stats.keys())[0]]
     else:
         return statistics.split(";")
 
