@@ -1,12 +1,13 @@
 """Components for the Corpora page."""
 import uuid
+from pathlib import Path
 
 import plotly.express as px
 from dash import MATCH, Input, Output, State, callback, dash_table, dcc, html
 from dash.dash_table.Format import Format
 
-import environment.settings as env
 from builtin.components.aio.aio import MarkdownFileAIO
+from environment.settings import corp_data, env
 
 table_props = {
     "style_table": {"max-height": 181, "max-width": 500, "overflowY": "auto"},
@@ -15,7 +16,9 @@ table_props = {
 }
 
 
-def make_columns(cols):
+def make_columns(cols, override: list = []):
+    if override:
+        cols = override
     return [
         dict(id=c, name=c, type="numeric", format=Format().group(True)) for c in cols
     ]
@@ -56,14 +59,19 @@ class CorpusDetailsAIO(html.Div):
         if aio_id is None:
             aio_id = str(uuid.uuid4())
 
-        # get premade calls
-        sizes = env.premade_calls[corpus]["sizes_df"]
-        structures = env.premade_calls[corpus]["structures_df"]
-        attrs = sorted(env.premade_calls[corpus]["attributes_ls"])
+        sizes = corp_data.sizes.loc[corp_data.sizes["corpus"] == corpus]
+        structures = corp_data.structures.loc[corp_data.structures["corpus"] == corpus]
+        vals = corp_data.structures.query("corpus==@corpus and exclude==False")
+        options = vals.apply(
+            lambda row: {"label": row["label"], "value": row["attr"]}, axis=1
+        ).to_list()
+        options = sorted(options, key=lambda dt: dt["label"])
 
         super().__init__(
             [
-                MarkdownFileAIO(env.corpora[corpus].get("md_file")),
+                MarkdownFileAIO(
+                    env.ACTIVE_DIR / Path("markdown") / Path(corpus).with_suffix(".md")
+                ),
                 html.Div(
                     [
                         html.Div(
@@ -73,7 +81,9 @@ class CorpusDetailsAIO(html.Div):
                                     data=sizes.sort_values(
                                         "size", ascending=False
                                     ).to_dict("records"),
-                                    columns=make_columns(sizes.columns),
+                                    columns=make_columns(
+                                        sizes.columns, ["structure", "size"]
+                                    ),
                                     **table_props,
                                 ),
                             ]
@@ -83,7 +93,9 @@ class CorpusDetailsAIO(html.Div):
                                 html.H5("Attributes"),
                                 dash_table.DataTable(
                                     data=structures.to_dict("records"),
-                                    columns=make_columns(structures.columns),
+                                    columns=make_columns(
+                                        structures.columns, ["label", "size"]
+                                    ),
                                     **table_props,
                                 ),
                             ]
@@ -93,8 +105,8 @@ class CorpusDetailsAIO(html.Div):
                                 html.H5("Attribute details"),
                                 dcc.Dropdown(
                                     clearable=False,
-                                    options=attrs,
-                                    value=attrs[0],
+                                    options=options,
+                                    value=options[0]["value"],
                                     id=self.ids.dropdown(aio_id),
                                 ),
                             ],
@@ -118,7 +130,7 @@ class CorpusDetailsAIO(html.Div):
         State(ids.store(MATCH), "data"),
     )
     def generate_chart(attribute, corpus):
-        df = env.premade_calls[corpus]["ttypes_df"].copy()
+        df = corp_data.ttypes.loc[corp_data.ttypes["corpus"] == corpus]
         slice = df.query("attribute == @attribute")
         fig = px.pie(
             slice,
