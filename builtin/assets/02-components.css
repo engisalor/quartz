@@ -22,7 +22,7 @@
 
 /* controls under a popover heading */
 .settings-options {
-    max-height: 80px;
+    max-height: 320px;
     overflow: scroll;
 }
 
