@@ -1,13 +1,18 @@
 *
 **/__pycache__/
 
+!assets/
+!components/
+!config/
+!markdown/
+!pages/
+!utils/
+
 !app.py
 !gunicorn_config.py
+!layout.py
+!LICENSE
 !Procfile
 !requirements.txt
-!.env
 !settings.py
-!custom/
-
-# comment to exclude data from container image
-!data/
+!version.py

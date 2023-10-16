@@ -15,6 +15,6 @@ markdown/*
 
 config/*
 !corpora.yml
+!corpora-ske.yml
 
-# comment to track custom content
 custom/*
