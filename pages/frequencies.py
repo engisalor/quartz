@@ -393,7 +393,7 @@ def send_requests(n_submit, n_clicks, corpora, attribute, input_text):
                     "showrel": 1,
                 }
             )
-    j = Job(thread=True, verbose=True, params=calls)
+    j = Job(params=calls, **env.sgex)
     j.run()
     dfs = pd.concat([dfs] + [call.df_from_json() for call in j.data.freqs])
     t1 = perf_counter()

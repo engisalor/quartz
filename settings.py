@@ -1,10 +1,8 @@
 import logging
 import os
 from dataclasses import dataclass
-from os.path import dirname, join
 
 import pandas as pd
-from dotenv import dotenv_values
 from sgex.job import Job
 from sgex.util import read_yaml
 
@@ -20,18 +18,49 @@ class ENV:
     """Dataclass with environment variables."""
 
     def __init__(self):
-        dotenv_path = join(dirname(__file__), os.getenv("ENVIRONMENT_FILE"))
-        dt = dotenv_values(dotenv_path) | {
-            k: v for k, v in os.environ.items() if k.startswith("SGEX_")
+        self.HOST = os.getenv("HOST")
+        self.PORT = os.getenv("PORT")
+        self.REDIRECT_POLICY = os.getenv("REDIRECT_POLICY")
+        self.CORPORA_YML = os.getenv("CORPORA_YML")
+        self.CORPORA_MD = os.getenv("CORPORA_MD")
+        self.GUIDE_MD = os.getenv("GUIDE_MD")
+        self.HOME_MD = os.getenv("HOME_MD")
+        self.MAX_QUERIES = os.getenv("MAX_QUERIES")
+        self.MAX_ITEMS = os.getenv("MAX_ITEMS")
+        self.DASH_DEBUG = os.getenv("DASH_DEBUG").lower()
+        for k, v in self.__dict__.items():
+            if (
+                v.startswith("'")
+                and v.endswith("'")
+                or v.startswith('"')
+                and v.endswith('"')
+            ):
+                setattr(self, k, v.strip("\"'"))
+            if k in ["MAX_QUERIES", "MAX_ITEMS"]:
+                setattr(self, k, int(v))
+            if k in ["DASH_DEBUG"]:
+                setattr(self, k, v.lower() == "true")
+        self.sgex = {
+            "api_key": os.getenv("SGEX_API_KEY"),
+            "server": os.getenv("SGEX_SERVER"),
+            "thread": os.getenv("SGEX_THREAD"),
+            "username": os.getenv("SGEX_USERNAME"),
+            "verbose": os.getenv("SGEX_VERBOSE"),
+            "wait_dict": os.getenv("SGEX_WAIT_DICT"),
         }
-        for k, v in dt.items():
-            if v.lower() == "true":
-                v = True
-            elif v.lower() == "false":
-                v = False
-            elif k == "MAX_QUERIES":
-                v = int(v)
-            setattr(self, k, v)
+        for k, v in self.sgex.items():
+            if not v:
+                pass
+            elif (
+                v.startswith("'")
+                and v.endswith("'")
+                or v.startswith('"')
+                and v.endswith('"')
+            ):
+                self.sgex[k] = v.strip("\"'")
+            if k in ["verbose", "thread"] and isinstance(v, str):
+                self.sgex[k] = v.lower() == "true"
+        self.sgex = {k: v for k, v in self.sgex.items() if v}
 
 
 @dataclass
@@ -47,7 +76,7 @@ class CorpData:
             {"call_type": "CorpInfo", "corpname": x, "struct_attr_stats": 1}
             for x in corp_ids
         ]
-        j = Job(verbose=True, thread=True, params=corpinfo_calls)
+        j = Job(params=corpinfo_calls, **env.sgex)
         j.run()
         # make wordlist calls (text type data)
         wordlist_params = {
@@ -102,7 +131,7 @@ class CorpData:
                     for attr in _structures["attr"]
                 ]
             )
-        j = Job(verbose=True, thread=True, params=wordlist_calls)
+        j = Job(params=wordlist_calls, **env.sgex)
         j.run()
         self.ttypes = pd.DataFrame()
         for call in j.data.wordlist:
