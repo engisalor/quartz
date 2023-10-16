@@ -6,20 +6,14 @@
             "type": "python",
             "request": "launch",
             "program": "app.py",
-            "console": "integratedTerminal",
-            "env": {
-                "ENVIRONMENT_FILE": ".env.dev"
-            }
+            "console": "integratedTerminal"
         },
         {
             "name": "Python: Current File",
             "type": "python",
             "request": "launch",
             "program": "${file}",
-            "console": "integratedTerminal",
-            "env": {
-                "ENVIRONMENT_FILE": ".env.dev"
-            }
+            "console": "integratedTerminal"
         }
     ]
 }
