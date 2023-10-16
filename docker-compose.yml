@@ -5,21 +5,13 @@ services:
   quartz:
     build:
       context: .
-    image: $QUARTZ_IMAGE
-    container_name: quartz
+    image: $IMAGE
+    container_name: $CONTAINER
     ports:
       - 8080:8080
     volumes:
     - type: bind
-      source: $QUARTZ_DIR
-      target: /data
-
-  noske:
-    image: $NOSKE_IMAGE
-    container_name: noske
-    volumes:
-      - type: bind
-        source: $CORPORA_DIR
-        target: /corpora
-    ports:
-      - 10070:80
+      source: $DATA_DIR
+      target: /code/data
+    env_file:
+      - .env

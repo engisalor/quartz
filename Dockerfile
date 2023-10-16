@@ -10,8 +10,6 @@ RUN pip install --upgrade pip \
 
 COPY ./ ./
 
-ENV ENVIRONMENT_FILE=".env"
-
 EXPOSE 8080
 
 ENTRYPOINT ["gunicorn", "--config", "gunicorn_config.py", "app:server"]
