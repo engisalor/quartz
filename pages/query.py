@@ -13,14 +13,16 @@ from sgex.job import Job
 from sgex.query import simple_query
 
 from components.aio import aio
-from pages import frequencies_viz
+from pages import freqs_viz
 from settings import corp_data, env, stats
 from utils import convert, redirect
 
 app = get_app()
 
 page_name = Path(__file__).stem
-dash.register_page(__name__)
+title = "Query"
+_path = "/"
+dash.register_page(__name__, path=_path, title=title)
 
 
 def layout(
@@ -142,7 +144,7 @@ def layout(
                 title="Show/hide user guide",
             ),
             dbc.Popover(
-                dbc.PopoverBody(aio.MarkdownFileAIO(env.GUIDE_MD)),
+                dbc.PopoverBody(aio.MarkdownFileAIO(getattr(env, "GUIDE_MD", None))),
                 target="guide-button",
                 trigger="click",
                 style={"overflow": "scroll"},
@@ -171,7 +173,7 @@ def layout(
     return html.Div(
         [
             dcc.Store(id="store-frequencies", storage_type="session"),
-            html.H2("Frequencies"),
+            html.H2(title),
             top_panel,
             dbc.Collapse(
                 html.Div(id="table"),
@@ -337,8 +339,8 @@ def draw(corpora, attribute, attribute_filter, statistics, data, input_text):
         return html.Div(), html.Div()
     arg_map = [[args[x], niceargs[x]] for x in range(len(args))]
     if not melted_slice.empty:
-        _graph = [frequencies_viz.bar_chart(melted_slice, arg) for arg in arg_map]
-        _table = frequencies_viz.data_table(df, arg_map)
+        _graph = [freqs_viz.bar_chart(melted_slice, arg) for arg in arg_map]
+        _table = freqs_viz.data_table(df, arg_map)
     t1 = perf_counter()
     m = f"{corpora} {attribute} {attribute_filter}"
     logging.debug(f"graph and table: {t1-t0:.3}s {len(slice)} rows, {m}")
@@ -423,7 +425,12 @@ def copy_url(n_clicks, corpora, attribute, attribute_filter, statistics, input_t
             "attribute_filter": ";".join(attribute_filter),
         }
 
-        url = request.host_url + page_name + "?" + urllib.parse.urlencode(dt)
+        url = (
+            request.host_url.rstrip("/")
+            + _path.strip("/")
+            + "?"
+            + urllib.parse.urlencode(dt)
+        )
         logging.debug(url)
         return url
 
