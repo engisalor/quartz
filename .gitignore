@@ -7,14 +7,9 @@ data/
 .env
 .env.dev
 
-markdown/*
-!markdown/corpora.md
-!markdown/home.md
-!markdown/user_guide.md
-!markdown/susanne.md
-
 config/*
-!corpora.yml
-!corpora-ske.yml
-
-custom/*
+!config/user_guide.md
+!config/corpora.yml
+!config/corpora-ske.yml
+!config/corpora.md
+!config/susanne.md
