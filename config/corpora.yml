@@ -7,7 +7,7 @@ susanne:
   # name shown in graphs
   name: Susanne
   # corpus description file
-  md_file: markdown/susanne.md
+  md_file: config/susanne.md
   # text types to exclude
   exclude:
     - doc.wordcount
