@@ -6,4 +6,4 @@ from settings import env
 dash.register_page(__name__)
 
 
-layout = MarkdownFileAIO(env.GUIDE_MD)
+layout = MarkdownFileAIO(getattr(env, "GUIDE_MD", None))

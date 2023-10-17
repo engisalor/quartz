@@ -68,7 +68,7 @@ class CorpusDetailsAIO(html.Div):
 
         super().__init__(
             [
-                MarkdownFileAIO(corp_data.dt[corpus]["md_file"]),
+                MarkdownFileAIO(corp_data.dt[corpus].get("md_file")),
                 html.Div(
                     [
                         html.Div(

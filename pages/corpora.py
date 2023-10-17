@@ -14,7 +14,7 @@ dash.register_page(__name__)
 
 layout = html.Div(
     [
-        MarkdownFileAIO(env.CORPORA_MD),
+        MarkdownFileAIO(getattr(env, "CORPORA_MD", None)),
         html.Br(),
         dbc.Tabs(
             [

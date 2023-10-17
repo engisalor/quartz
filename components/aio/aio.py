@@ -28,12 +28,15 @@ class MarkdownFileAIO(html.Div):
 
     def __init__(
         self,
-        file: str,
+        file: str | None,
         markdown_props={"style": {"maxWidth": "800px"}},
         aio_id: str = None,
     ):
-        with open(pathlib.Path(file)) as f:
-            text = f.read()
+        if file and isinstance(file, str) and pathlib.Path(file).exists():
+            with open(pathlib.Path(file)) as f:
+                text = f.read()
+        else:
+            text = ""
 
         if aio_id is None:
             aio_id = str(uuid.uuid4())
