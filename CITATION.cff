@@ -4,7 +4,7 @@ authors:
    - family-names: Isaacs
      given-names: Loryn
      orcid: "https://orcid.org/0000-0003-0267-4853"
-title: "Quartz"
+title: "Quartz: a portable visualization tool for Sketch Engine servers"
 version: 0.2.1  # x-release-please-version
 date-released: 2023-01-21
 repository-code: https://github.com/engisalor/quartz
