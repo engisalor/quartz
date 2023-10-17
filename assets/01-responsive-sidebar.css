@@ -1,12 +1,16 @@
 /* Adapted from: https://community.plotly.com/t/sidebar-with-icons-expands-on-hover-and-other-cool-sidebars/67318 */
 
 .sidebar {
-  background-color: white;
+  background-color: var(--page-background);
 
 }
 
 .sidebar .nav-link span {
-  color: #5065A8;
+  color: var(--primary-color);
+}
+
+.sidebar .nav-pills .nav-link.active {
+  background-color: var(--button-background);
 }
 
 /* Small screens */
@@ -14,18 +18,9 @@
   h2 {
     font-size: 8vw }
 
-  .sidebar .nav-pills .nav-link.active {
-    background-color: #c9e3f2;
-  }
-
   .sidebar-icon {
     width: 0px;
     opacity: 0%;
-  }
-
-  .sidebar-bars {
-    opacity: 0%;
-    height: 0px;
   }
 
   .sidebar {
@@ -38,13 +33,24 @@
     float: left;
   }
 
-  /* hide nav-link icons by default */
-  /* .sidebar .nav-link i {
+  .nav-link i {
     visibility: hidden;
-    opacity: 1;
-  } */
+    width: 0%;
+  }
 
-  div.content {margin-left: 0;}
+  #page-content {
+    margin-left: 20px;
+    margin-right: 20px;
+  }
+
+  p.lead {
+    font-size: x-large;
+    font-weight: bold;
+  }
+
+  h2 {
+    text-align: center;
+  }
 
 }
 
@@ -78,10 +84,6 @@
     white-space: nowrap;
   }
 
-  /* fix the width of the icons */
-  .sidebar .nav-link i {
-    width: 1rem;
-  }
 
   /* hide the navlink labels by default */
   .sidebar .nav-link span {
@@ -93,22 +95,6 @@
   /* when the sidebar is hovered, reveal the labels */
   .sidebar:hover .nav-link span {
     visibility: visible;
-    opacity: 1;
-    color:#27255f;
-
-  }
-
-  /* hide the nav-pills by default */
-  .sidebar .nav-pills .nav-link.active {
-    visibility: hidden;
-    opacity: 1;
-    transition: opacity 0.1s ease-in-out;
-  }
-
-  /* when the sidebar is hovered, reveal the active nav-pill */
-  .sidebar:hover .nav-pills .nav-link.active {
-    visibility: visible;
-    background-color: #c9e3f2;
     opacity: 1;
   }
 
@@ -133,18 +119,6 @@
     opacity: 1;
   }
 
-  /* show bars when sidebar is minimized */
-  .sidebar-bars {
-    display: flex;
-    justify-content: center;
-    align-items: bottom;
-    color: #27255f;
-  }
-
-  /* hide bars when the sidebar is toggled */
-  .sidebar:hover .sidebar-bars i {
-    opacity: 0;
-  }
 
   /* shrink icon when sidebar is minimized */
   .sidebar-icon {

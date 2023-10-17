@@ -3,14 +3,28 @@
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
+:root {
+    --primary-color: black;
+    --secondary-color: #0080ff;
+    --tertiary-color: #004d9b;
+    --gray-color: grey;
+    --page-background: #ffffff;
+    --block-background: #ffffff;
+    --button-background: #e5f2ff;
+  }
+
 h1, h2, h3, h4, h5, h6 {
-    color: #5065A8; }
+    color: var(--primary-color); }
 
 code {
-    color: #5065A8;
+    color: var(--secondary-color);
 }
 
 .footnote {
     font-size: small;
     line-height: 1;
+}
+
+p.lead {
+    color: var(--tertiary-color);
 }
