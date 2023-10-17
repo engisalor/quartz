@@ -5,7 +5,6 @@ from dash import html
 
 import layout
 from settings import env
-from utils import redirect
 
 server = flask.Flask(__name__)
 
@@ -26,12 +25,6 @@ app = dash.Dash(
 )
 
 app.layout = html.Div([layout.sidebar(), layout.content])
-
-if env.REDIRECT_POLICY:
-
-    @server.before_request
-    def validate_get_request():
-        return getattr(redirect, env.REDIRECT_POLICY)()
 
 
 if __name__ == "__main__":

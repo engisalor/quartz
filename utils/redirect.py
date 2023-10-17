@@ -4,7 +4,7 @@ import logging
 import dash
 from flask import redirect, request
 
-from settings import corp_data, stats
+from settings import corp_data, env, stats
 
 
 def global_policy():
@@ -19,7 +19,7 @@ def global_policy():
     if not bool(dt):
         return None
     # policies for each page
-    if request.path == "/frequencies":
+    if request.path == "/":
         return frequencies_policy(dt)
 
 
@@ -30,7 +30,7 @@ def frequencies_policy(dt):
         logging.debug(f"reject args: {dt.keys()}")
         return redirect(request.path)
     # too many combined queries
-    if dt["query"].count(";") > 4:
+    if dt["query"].count(";") > env.MAX_QUERIES:
         logging.debug(f'reject N queries: {dt["query"]}')
         return redirect(request.path)
     # unsupported corpora
