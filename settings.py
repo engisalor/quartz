@@ -20,16 +20,17 @@ class ENV:
     def __init__(self):
         self.HOST = os.getenv("HOST")
         self.PORT = os.getenv("PORT")
-        self.REDIRECT_POLICY = os.getenv("REDIRECT_POLICY")
         self.CORPORA_YML = os.getenv("CORPORA_YML")
         self.CORPORA_MD = os.getenv("CORPORA_MD")
         self.GUIDE_MD = os.getenv("GUIDE_MD")
-        self.HOME_MD = os.getenv("HOME_MD")
         self.MAX_QUERIES = os.getenv("MAX_QUERIES")
         self.MAX_ITEMS = os.getenv("MAX_ITEMS")
         self.DASH_DEBUG = os.getenv("DASH_DEBUG").lower()
         for k, v in self.__dict__.items():
-            if (
+            if not v:
+                if k == "GUIDE_MD":
+                    setattr(self, "GUIDE_MD", "config/user_guide.md")
+            elif (
                 v.startswith("'")
                 and v.endswith("'")
                 or v.startswith('"')
