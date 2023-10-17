@@ -10,8 +10,11 @@ services:
     ports:
       - 8080:8080
     volumes:
-    - type: bind
-      source: $DATA_DIR
-      target: /code/data
+      - type: bind
+        source: $CONFIG_DIR
+        target: /code/config
+      - type: bind
+        source: $DATA_DIR
+        target: /code/data
     env_file:
       - .env
