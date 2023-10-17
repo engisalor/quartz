@@ -6,12 +6,32 @@ from version import version
 
 
 def sidebar():
+    # manual sidebar contents
     sidebar_contents = [
         dbc.NavLink(
-            [html.Span(page["name"])], href=page["relative_path"], active="exact"
-        )
-        for page in dash.page_registry.values()
+            [html.I(className="bi bi-search"), html.Span("Query")],
+            href="/",
+            active="exact",
+        ),
+        dbc.NavLink(
+            [html.I(className="bi bi-database"), html.Span("Corpora")],
+            href="/corpora",
+            active="exact",
+        ),
+        dbc.NavLink(
+            [html.I(className="bi bi-question-square"), html.Span("User guide")],
+            href="/user-guide",
+            active="exact",
+        ),
     ]
+
+    # automatic sidebar contents
+    # sidebar_contents = [
+    #     dbc.NavLink(
+    #         [html.Span(page["name"])], href=page["relative_path"], active="exact"
+    #     )
+    #     for page in dash.page_registry.values()
+    # ]
 
     version_tag = html.Small(f"v{version}")
     source_code = dbc.NavLink(
@@ -26,12 +46,11 @@ def sidebar():
         [
             html.Div(
                 html.A(
-                    html.Img(src="assets/sidebar-icon.svg", className="sidebar-icon"),
+                    html.Img(src="assets/sidebar-icon.png", className="sidebar-icon"),
                     href="/",
                 )
             ),
             html.Div(html.P("Quartz", className="lead"), className="sidebar-header"),
-            html.Div(html.I(className="bi bi-list"), className="sidebar-bars"),
             dbc.Nav(
                 sidebar_contents,
                 vertical=True,
