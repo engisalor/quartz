@@ -41,18 +41,28 @@
 
 | Data set | |
 |-|-|
-| [Corpus](/corpora) | A database of searchable texts. |
-| Attribute | A type of metadata for each corpus (`year`, `author`, `id`, ...). If multiple corpora are selected, only comparable attributes appear. |
+| Corpus | A database of searchable texts. |
+| Attribute | A type of metadata for each corpus (`year`, `author`, `id`, ...). If multiple corpora are selected, only attributes defined as "comparable" will appear. |
 | Attribute value (aka text type) | An attribute (`year`) can have many values (`2000`, `2001`, ...): these can be filtered. Some attributes have many values and only a portion can be displayed. |
 
 | Statistics | | |
 |-|-|-|
-| **frq** | Occurrences | How often a query occurs in a corpus |
-| **rel** | Relative density % | How often a query occurs in a text type compared to the whole corpus |
-| **fpm** | Frequency per million | How often a query occurs for every million words in a corpus |
-| **reltt** | Relative density per million in text type | How often a query occurs for every million words in a text type |
+| frq | Occurrences | How often a query occurs in a corpus |
+| rel | Relative density % | How often a query occurs in a text type compared to the whole corpus |
+| fpm | Frequency per million | How often a query occurs for every million words in a corpus |
+| reltt | Relative density per million in text type | How often a query occurs for every million words in a text type |
 
-- See Sketch Engine's [user guide](https://www.sketchengine.eu/guide/) for more information on interpreting corpus data, particularly the glossary and details on statistics.
+#### Interpreting data
+
+This app visualizes frequencies and encourages data exploration. That said, numbers can't tell the whole story: reading source texts is essential for proper interpretation.
+
+Keep in mind that statistics only allow certain types of comparisons. Since this app disaggregates data by text types, consider the following:
+
+- **frq** indicates "raw" frequencies, which doesn't capture the relative size of different data sets
+- **rel** and **fpm** are best for comparing text types ***within*** a single corpus
+- **reltt** can be used for comparing text types ***across*** corpora (i.e., why it's the default statistic)
+
+See Sketch Engine's [user guide](https://www.sketchengine.eu/guide/) for more information on interpreting corpus data, particularly the glossary and details on statistics.
 
 #### Multivalue attributes
 
