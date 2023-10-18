@@ -1,21 +1,22 @@
-import logging
 import textwrap
 
+import numpy as np
 import pandas as pd
 import plotly.express as px
 from dash import dash_table, dcc, html
+from plotly import graph_objects as go
 
 from settings import corp_data
 
 
-def data_table(data: pd.DataFrame, args_map: list):
+def data_table(data: pd.DataFrame, args_map: list) -> html.Div:
     """Builds a table of summary statistics."""
 
     df = pd.DataFrame()
     for c in data["corpname"].unique():
         corpus = corp_data.dt[c].get("name")
-        for arg_map in args_map:
-            nicearg = arg_map[1]  # noqa: F841
+        for arg in args_map:
+            nicearg = arg[1]  # noqa: F841
             slice = data.query("corpname == @c and nicearg == @nicearg")
             fmaxitems = "|".join(slice["fmaxitems"].unique())
             maxitems_note = (
@@ -30,7 +31,7 @@ def data_table(data: pd.DataFrame, args_map: list):
             attr = slice["attribute"].unique()[0]
             record = [
                 {
-                    "query": arg_map[0],
+                    "query": arg[0],
                     "cql": " & ".join(slice["arg"].unique()),
                     "corpus": corpus,
                     "attribute": corp_data.dt[c]["label"][attr],
@@ -100,63 +101,14 @@ def data_table(data: pd.DataFrame, args_map: list):
     )
 
 
-def bar_chart(data: pd.DataFrame, arg_map: list):
+def bar_chart(data: pd.DataFrame, arg_map: list) -> html.Div:
     """Builds bar graphs for given data and query/nicearg."""
 
-    nicearg = arg_map[1]  # noqa: F841
-    df = data.query("nicearg == @nicearg").copy()
-    df["corpus"] = df["corpname"].copy()
-    df["corpus"].replace(
-        {k: corp_data.dt[k]["name"] for k in corp_data.dt.keys()}, inplace=True
-    )
-    df.sort_values(["corpus", "f", "value"], inplace=True)
-    df[""] = df["f"]  # patch for removing y axis subplot titles
-    df["cql"] = df["arg"].apply(lambda t: "<br>".join(textwrap.wrap(t, 80)))
-    df["val"] = df["value"].apply(lambda t: "<br>".join(textwrap.wrap(t, 80)))
-
-    _attrs = df["attribute"].unique()
-    corpora = df["corpname"].unique()
-    attrs = []
-    for corpus in corpora:
-        for attr in _attrs:
-            attrs.append(corp_data.dt[corpus]["label"].get(attr, None))
-
-    fig = px.bar(
-        df,
-        x="value",
-        y="",
-        color="corpus",
-        barmode="group",
-        facet_col="statistic",
-        facet_col_wrap=1,
-        facet_row_spacing=0.1,
-        height=len(df["statistic"].unique()) * 150 + 180,
-        hover_data={
-            "corpus": False,
-            "corpname": False,
-            "nicearg": False,
-            "value": False,
-            "": False,
-            "f": ":.2f",
-            "statistic": False,
-        },
-        category_orders={
-            "corpname": sorted(df["corpname"].unique()),
-            "statistic": sorted(df["statistic"].unique()),
-        },
-    )
-    fig.update_layout(
-        hovermode="x unified",
-        plot_bgcolor="#ffffff",
-        title=dict(text=arg_map[0], font=dict(size=22), yref="container"),
-        xaxis_title="",
-        yaxis_title="",
-        xaxis={"categoryorder": "category ascending"},
-    )
-    fig.update_yaxes(matches=None)
-    fig.update_xaxes(automargin=False)
-
     def customize_annotation(annotation):
+        attrs = []
+        for corpus in data["corpname"].unique():
+            for attr in data["attribute"].unique():
+                attrs.append(corp_data.dt[corpus]["label"].get(attr, None))
         text = (
             "x="
             + " & ".join(set([x for x in attrs if x]))
@@ -165,7 +117,119 @@ def bar_chart(data: pd.DataFrame, arg_map: list):
         )
         annotation.update(text=text, font_size=15)
 
-    fig.for_each_annotation(customize_annotation)
+    def make_fig(query, nicearg):
+        df = data.query("nicearg == @nicearg").copy()
+        df["corpus"] = df["corpname"].replace(
+            {k: corp_data.dt[k]["name"] for k in corp_data.dt.keys()}
+        )
+        df.sort_values(["corpus", "f", "value"], inplace=True)
+        df[""] = df["f"]  # patch for removing y axis subplot titles
+        df["cql"] = df["arg"].apply(lambda t: "<br>".join(textwrap.wrap(t, 80)))
+        df["val"] = df["value"].apply(lambda t: "<br>".join(textwrap.wrap(t, 80)))
+        fig = px.bar(
+            df,
+            x="value",
+            y="",
+            color="corpus",
+            barmode="group",
+            facet_col="statistic",
+            facet_col_wrap=1,
+            facet_row_spacing=0.1,
+            height=len(df["statistic"].unique()) * 150 + 180,
+            hover_data={
+                "corpus": False,
+                "corpname": False,
+                "nicearg": False,
+                "value": False,
+                "": False,
+                "f": ":.2f",
+                "statistic": False,
+            },
+            category_orders={
+                "corpname": sorted(df["corpname"].unique()),
+                "statistic": sorted(df["statistic"].unique()),
+            },
+        )
+        fig.update_layout(
+            hovermode="x unified",
+            plot_bgcolor="#ffffff",
+            title=dict(text=query, font=dict(size=22), yref="container"),
+            xaxis_title="",
+            yaxis_title="",
+            xaxis={"categoryorder": "category ascending"},
+        )
+        fig.update_yaxes(matches=None)
+        fig.update_xaxes(automargin=False)
+        fig.for_each_annotation(customize_annotation)
+        return fig
 
-    logging.debug(f"MADE {df.size}")
-    return dcc.Graph(figure=fig)
+    return html.Div(
+        [html.Div(dcc.Graph(figure=make_fig(arg[0], arg[1]))) for arg in arg_map]
+    )
+
+
+def choropleth(data: pd.DataFrame, arg_map: list) -> html.Div:
+    graphs = []
+    for arg in arg_map:
+        nicearg = arg[1]  # noqa: F841
+        _data = data.query("nicearg == @nicearg").copy()
+        attribute = "/".join(_data["attribute"].unique())
+        _data["value"] = _data["value"].copy().str.upper()
+        print("STATS", sorted(_data["statistic"].unique()))
+        for stat in sorted(_data["statistic"].unique()):
+            slice = _data.loc[_data["statistic"] == stat]
+            if stat == "frq":
+                slice["_f"] = slice["f"].apply(np.log10).round(2)
+                title = f"log10<br>{stat}"
+            else:
+                slice["_f"] = slice["f"].round(2)
+                title = stat
+            for c in sorted(slice["corpname"].unique()):
+                df = slice.loc[
+                    (slice["corpname"] == c) & (~slice["value"].str.contains(r"\|"))
+                ].copy()
+                df["text"] = ""
+                if stat == "frq":
+                    df["text"] += f"{stat}=" + df["f"].astype(int).astype(str)
+                # annotations
+                anno_0 = f'Mean of {len(df)} values = {round(df["_f"].mean(), 2):,}'
+                wld = df.loc[df["value"] == "WLD", "_f"].sum().round(2)
+                if len(df.loc[df["value"] == "WLD"]) > 1:
+                    raise ValueError("more than one WLD row found")
+                elif wld:
+                    anno_1 = f"World = {wld}"
+                else:
+                    anno_1 = ""
+                footer = (
+                    f'{corp_data.dt[c]["name"]}\t{corp_data.dt[c]["label"][attribute]}'
+                    + f"<br>{anno_0}\t{anno_1}"
+                )
+                # create figure
+                fig = go.Figure(
+                    data=go.Choropleth(
+                        locations=df["value"],
+                        z=df["_f"],
+                        text=df["text"],
+                        colorbar=dict(
+                            orientation="v",
+                            title=title,
+                        ),
+                    ),
+                )
+                fig.update_layout(
+                    autosize=True,
+                    title=dict(text=arg[0], font=dict(size=22), yref="container"),
+                    geo=dict(
+                        showframe=False,
+                        showcoastlines=False,
+                        projection_type="cylindrical equal area",
+                    ),
+                    height=500,
+                    font_size=15,
+                    annotations=[
+                        dict(x=0.5, y=0, showarrow=False, text=footer),
+                    ],
+                )
+                graphs.append(fig)
+
+    return [html.Div(dcc.Graph(figure=x, config=dict(responsive=True))) for x in graphs]

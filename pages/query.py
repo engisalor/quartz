@@ -300,14 +300,13 @@ def toggle_table_collapse(n, is_open):
 )
 def draw(corpora, attribute, attribute_filter, statistics, data, input_text):
     """Draws page content based on options."""
-    t0 = perf_counter()
     df = pd.DataFrame.from_dict(data)
     if not len(statistics) or df.empty:
         return html.Div(), html.Div()
     query_args = []
     slice = pd.DataFrame()
-    _graph = []
-    _table = []
+    graphs = []
+    table = []
     attrs = []
     # filtering
     if len(corpora):
@@ -337,14 +336,16 @@ def draw(corpora, attribute, attribute_filter, statistics, data, input_text):
     if len(niceargs) != len(args):
         logging.error(f"len(niceargs) {len(niceargs)} != len(args) {len(args)}")
         return html.Div(), html.Div()
-    arg_map = [[args[x], niceargs[x]] for x in range(len(args))]
     if not melted_slice.empty:
-        _graph = [freqs_viz.bar_chart(melted_slice, arg) for arg in arg_map]
-        _table = freqs_viz.data_table(df, arg_map)
-    t1 = perf_counter()
-    m = f"{corpora} {attribute} {attribute_filter}"
-    logging.debug(f"graph and table: {t1-t0:.3}s {len(slice)} rows, {m}")
-    return html.Div(_graph), _table
+        arg_map = [[args[x], niceargs[x]] for x in range(len(args))]
+        is_choropleth = [corp_data.dt[c].get("choropleth", []) for c in corpora]
+        table = freqs_viz.data_table(df, arg_map)
+        if attribute in [y for x in is_choropleth for y in x]:
+            graphs = freqs_viz.choropleth(melted_slice, arg_map)
+        else:
+            graphs = freqs_viz.bar_chart(melted_slice, arg_map)
+
+    return graphs, table
 
 
 @dash.callback(
