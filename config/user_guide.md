@@ -83,6 +83,29 @@ Graphs are made with [plotly](https://plotly.com/) and have interactive features
 - Select/deselect corpora in the legend
 - Other features are shown on the top right of a graph when hovering over it
 
+#### Summary table
+
+The summary table can be shown/hidden with the spreadsheet icon next to the `settings` button.
+
+| Column | Description |
+|-|-|
+| query | Query as written in the `search` bar |
+| cql | CQL representation of the query |
+| corpus | Current corpus |
+| attribute | Current attribute |
+| n attr. | Number of text types collected: if many exist, only the top `N` are shown to prevent the app from freezing |
+| frq corp. | Occurrences in the whole corpus: the absolute number of times a query appears|
+| frq attr. | Sum of occurrences in each attribute: when an attribute is single-value, the sum of all occurrences across text types generally equals `frq. corp.`; when an attribute is multivalue, this can exceed `freq. corp.` (because an occurrence can be shared by multiple text types) |
+| fpm corp. | Frequency per million tokens in the whole corpus |
+| M rel % | Mean relative density in text types |
+| M reltt | Mean relative density per million in text types |
+| M fpm | Mean frequency per million in text types |
+| M frq | Mean occurrences in text types |
+
+#### Data point URL generation
+
+If activated, this feature generates a URL to the Sketch Engine GUI when a specific data point is clicked. Once the point is selected, click the link icon on the top right of the graph to open a new tab.
+
 #### Advanced queries
 
 *For custom search behaviors*
