@@ -3,6 +3,6 @@ profile = "black"
 
 [project]
 name = "quartz"
-version = "0.2.1"  # x-release-please-version
+version = "0.3.0"  # x-release-please-version
 authors = [{name="Loryn Isaacs", email="50170623+engisalor@users.noreply.github.com"}]
 description = "An interface for Sketch Engine focused on data visualization"

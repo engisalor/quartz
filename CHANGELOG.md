@@ -1,5 +1,54 @@
 # Changelog
 
+## [0.3.0](https://github.com/engisalor/quartz/compare/v0.2.1...v0.3.0) (2023-10-19)
+
+
+### ⚠ BREAKING CHANGES
+
+* redo settings attrs, funcs
+
+### Bug Fixes
+
+* add choropleth viz, refactor vizzes ([a73f43c](https://github.com/engisalor/quartz/commit/a73f43c13b20ada5560ba6ca267dbd356a4d886e))
+* add config volume to compose file ([cb5b0d8](https://github.com/engisalor/quartz/commit/cb5b0d863e3b61e8a90557fee8581795b13822f5))
+* add corpora-ske.yml example ([49ef511](https://github.com/engisalor/quartz/commit/49ef51148e401d8e7598593d357bcc6b99d63379))
+* add labels to dockerfile ([5e56614](https://github.com/engisalor/quartz/commit/5e566147e71185a950df06bae16936f880047e77))
+* add params to stored data ([336af00](https://github.com/engisalor/quartz/commit/336af003bcb0013208ef9516a941bc1380ed9791))
+* add ske_graph AIO module ([98a1461](https://github.com/engisalor/quartz/commit/98a14612d2f1596cd4b7b054f9cb28881573416f))
+* deprecate redirect policy ([65aa297](https://github.com/engisalor/quartz/commit/65aa2971eda72143302d56e439e5c3632fa7ef95))
+* guide-button placement ([79f6331](https://github.com/engisalor/quartz/commit/79f6331a0c2e13d6a62c1e28bb96cf31b2beb851))
+* markdown aio allow None, default to "" ([bcbe007](https://github.com/engisalor/quartz/commit/bcbe0073ee2b976932716121b083ce994d07b335))
+* move markdown/ to config/ ([71a4495](https://github.com/engisalor/quartz/commit/71a44958586c4c9654c536cc0e9cdff5c5d19e8a))
+* move settings to base dir (del environment) ([57417d7](https://github.com/engisalor/quartz/commit/57417d720c91154217655f143163ac58b4ab2232))
+* redo env variable parsing ([034ca4d](https://github.com/engisalor/quartz/commit/034ca4db600d7d6f532872060e6b3307e06fde42))
+* redo settings attrs, funcs ([590ba68](https://github.com/engisalor/quartz/commit/590ba68ba5be01451b28f8988a5c6b873b174995))
+* remove builtin .env examples ([e85ff08](https://github.com/engisalor/quartz/commit/e85ff0827a0ff25c7e50ffafd3ba6bfe2f972c48))
+* remove redirect, home_md env attrs, add guide ([2c736b0](https://github.com/engisalor/quartz/commit/2c736b03a0277c84fb92cfbf06846bfcf73a3d82))
+* rename pages files, rm home, update copy_url ([110fe2f](https://github.com/engisalor/quartz/commit/110fe2fbec7e69767fbca58d05cf97dd3ec658dc))
+* update app.py ([944f05a](https://github.com/engisalor/quartz/commit/944f05a372cfa5a14b4719cf0efd8ff1849eecf3))
+* update corpora aio ([68aa585](https://github.com/engisalor/quartz/commit/68aa58508add9e61caabc9930157ac1b1f59cbc1))
+* update corpora page ([bfe03cc](https://github.com/engisalor/quartz/commit/bfe03cc9091b391650c0ec23dd0a0fc7b4d8d489))
+* update docker files ([611e6c4](https://github.com/engisalor/quartz/commit/611e6c494bce6f103e44676648492cc2c069173d))
+* update dockerfile ([3b5c323](https://github.com/engisalor/quartz/commit/3b5c32321233eeaefbaaa2a9941614bfe82a56f1))
+* update env example ([364081a](https://github.com/engisalor/quartz/commit/364081a840f8210c17ec30aa6f9597bc0581fef9))
+* update env, ignore files ([aa90ee0](https://github.com/engisalor/quartz/commit/aa90ee0ac2f602e2bf7f4e4da73d4da7714eb555))
+* update freqs_viz, settings,  for url gener. ([550a2a2](https://github.com/engisalor/quartz/commit/550a2a206fc459000aa9ad8d036e8bc4feab286a))
+* update frequencies page ([1919c39](https://github.com/engisalor/quartz/commit/1919c391e90133847e413a5ee9a0278995cf295d))
+* update frequencies visualization funcs ([6dbf2f3](https://github.com/engisalor/quartz/commit/6dbf2f33c1ba1e5afa7ace17c35d044af55076c6))
+* update ignore and env files ([9239a11](https://github.com/engisalor/quartz/commit/9239a111411fb3f66c3706d9915795d5d2dc8841))
+* update ignore files ([f7699c0](https://github.com/engisalor/quartz/commit/f7699c03b77923df59186160eb2bf54ec6cd5210))
+* update import paths for settings ([f427fe5](https://github.com/engisalor/quartz/commit/f427fe5a4e182037834556ca7b0e685d2b4c4def))
+* update layout sidebar ([529b219](https://github.com/engisalor/quartz/commit/529b219888a861cbc61304661a2cbf3ce03623ed))
+* update redirect ([35cc132](https://github.com/engisalor/quartz/commit/35cc1325b30ec8e633e402dc97244e3be26fdf50))
+* update sidebar icon ([3e02890](https://github.com/engisalor/quartz/commit/3e028900ecf8d174f80ab4eab5bb898ffa7243d3))
+
+
+### Documentation
+
+* add interpretation note to guide ([1fcd7ff](https://github.com/engisalor/quartz/commit/1fcd7ff7a8e8afc509dcfc797d636c70f1bd5ae3))
+* update guide, env example ([d148632](https://github.com/engisalor/quartz/commit/d14863232343c64736f19a42fb487b8ef031b934))
+* update readme, citation ([e12d7d5](https://github.com/engisalor/quartz/commit/e12d7d51ccfc5743716cc29454b49a099eabb04e))
+
 ## [0.2.1](https://github.com/engisalor/quartz/compare/v0.2.0...v0.2.1) (2023-04-18)
 
 
