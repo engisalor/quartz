@@ -1,8 +1,8 @@
+import json
 import logging
 import urllib
 from collections import Counter
 from pathlib import Path
-from time import perf_counter
 
 import dash
 import dash_bootstrap_components as dbc
@@ -358,7 +358,6 @@ def draw(corpora, attribute, attribute_filter, statistics, data, input_text):
     prevent_initial_call=True,
 )
 def send_requests(n_submit, n_clicks, corpora, attribute, input_text):
-    t0 = perf_counter()
     if isinstance(input_text, str):
         input_text = input_text.strip()
     if not input_text:
@@ -370,7 +369,6 @@ def send_requests(n_submit, n_clicks, corpora, attribute, input_text):
 
     queries = [x.strip() for x in input_text.split(";") if x.strip()]
     queries = queries[: env.MAX_QUERIES]
-    dfs = pd.DataFrame()
     calls = []
     for corpus in corpora:
         label_map = {v: k for k, v in corp_data.dt[corpus]["label"].items()}
@@ -398,10 +396,12 @@ def send_requests(n_submit, n_clicks, corpora, attribute, input_text):
             )
     j = Job(params=calls, **env.sgex)
     j.run()
-    dfs = pd.concat([dfs] + [call.df_from_json() for call in j.data.freqs])
-    t1 = perf_counter()
-    logging.debug(f"{t1-t0:.3}s {len(queries)} calls")
-    return dfs.to_dict("records")
+    dfs = []
+    for call in j.data.freqs:
+        df = call.df_from_json()
+        df["params"] = json.dumps(call.params)
+        dfs.append(df)
+    return pd.concat(dfs).to_dict("records")
 
 
 @dash.callback(
