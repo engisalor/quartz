@@ -25,6 +25,7 @@ class ENV:
         self.GUIDE_MD = os.getenv("GUIDE_MD")
         self.MAX_QUERIES = os.getenv("MAX_QUERIES")
         self.MAX_ITEMS = os.getenv("MAX_ITEMS")
+        self.SERVER_URL = os.getenv("SERVER_URL")
         self.DASH_DEBUG = os.getenv("DASH_DEBUG").lower()
         for k, v in self.__dict__.items():
             if not v:

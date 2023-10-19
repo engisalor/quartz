@@ -3,9 +3,9 @@ import textwrap
 import numpy as np
 import pandas as pd
 import plotly.express as px
-from dash import dash_table, dcc, html
-from plotly import graph_objects as go
+from dash import dash_table, html
 
+from components.aio.ske_graph import SkeGraphAIO
 from settings import corp_data
 
 
@@ -135,6 +135,7 @@ def bar_chart(data: pd.DataFrame, arg_map: list) -> html.Div:
             facet_col="statistic",
             facet_col_wrap=1,
             facet_row_spacing=0.1,
+            custom_data=["params", "attribute", "value"],
             height=len(df["statistic"].unique()) * 150 + 180,
             hover_data={
                 "corpus": False,
@@ -153,8 +154,8 @@ def bar_chart(data: pd.DataFrame, arg_map: list) -> html.Div:
         fig.update_layout(
             hovermode="x unified",
             plot_bgcolor="#ffffff",
-            title=dict(text=query, font=dict(size=22), yref="container"),
             xaxis_title="",
+            margin=dict(l=0, r=0, t=25),
             yaxis_title="",
             xaxis={"categoryorder": "category ascending"},
         )
@@ -163,9 +164,11 @@ def bar_chart(data: pd.DataFrame, arg_map: list) -> html.Div:
         fig.for_each_annotation(customize_annotation)
         return fig
 
-    return html.Div(
-        [html.Div(dcc.Graph(figure=make_fig(arg[0], arg[1]))) for arg in arg_map]
-    )
+    graphs = []
+    for arg in arg_map:
+        graphs.append(SkeGraphAIO(arg[0], figure=make_fig(arg[0], arg[1])))
+
+    return graphs
 
 
 def choropleth(data: pd.DataFrame, arg_map: list) -> html.Div:
@@ -174,27 +177,25 @@ def choropleth(data: pd.DataFrame, arg_map: list) -> html.Div:
         nicearg = arg[1]  # noqa: F841
         _data = data.query("nicearg == @nicearg").copy()
         attribute = "/".join(_data["attribute"].unique())
-        _data["value"] = _data["value"].copy().str.upper()
-        print("STATS", sorted(_data["statistic"].unique()))
+        _data["iso3"] = _data["value"].str.upper()
         for stat in sorted(_data["statistic"].unique()):
-            slice = _data.loc[_data["statistic"] == stat]
+            slice = _data.loc[_data["statistic"] == stat].copy()
             if stat == "frq":
-                slice["_f"] = slice["f"].apply(np.log10).round(2)
-                title = f"log10<br>{stat}"
+                stat = f"{stat}_log10"
+                slice[stat] = slice["f"].apply(np.log10).round(2)
+                slice["frq"] = slice["f"].apply(lambda x: f"{int(x):,}")
+                hover_data = [stat, "frq", "iso3"]
             else:
-                slice["_f"] = slice["f"].round(2)
-                title = stat
+                slice[stat] = slice["f"].round(2)
+                hover_data = [stat, "iso3"]
             for c in sorted(slice["corpname"].unique()):
                 df = slice.loc[
-                    (slice["corpname"] == c) & (~slice["value"].str.contains(r"\|"))
+                    (slice["corpname"] == c) & (~slice["iso3"].str.contains(r"\|"))
                 ].copy()
-                df["text"] = ""
-                if stat == "frq":
-                    df["text"] += f"{stat}=" + df["f"].astype(int).astype(str)
                 # annotations
-                anno_0 = f'Mean of {len(df)} values = {round(df["_f"].mean(), 2):,}'
-                wld = df.loc[df["value"] == "WLD", "_f"].sum().round(2)
-                if len(df.loc[df["value"] == "WLD"]) > 1:
+                anno_0 = f"Mean of {len(df)} values = {round(df[stat].mean(), 2):,}"
+                wld = df.loc[df["iso3"] == "WLD", stat].sum().round(2)
+                if len(df.loc[df["iso3"] == "WLD"]) > 1:
                     raise ValueError("more than one WLD row found")
                 elif wld:
                     anno_1 = f"World = {wld}"
@@ -205,31 +206,29 @@ def choropleth(data: pd.DataFrame, arg_map: list) -> html.Div:
                     + f"<br>{anno_0}\t{anno_1}"
                 )
                 # create figure
-                fig = go.Figure(
-                    data=go.Choropleth(
-                        locations=df["value"],
-                        z=df["_f"],
-                        text=df["text"],
-                        colorbar=dict(
-                            orientation="v",
-                            title=title,
-                        ),
-                    ),
+                fig = px.choropleth(
+                    df,
+                    locations="iso3",
+                    color=stat,
+                    custom_data=["params", "attribute", "value"],
+                    hover_data=hover_data,
                 )
                 fig.update_layout(
                     autosize=True,
-                    title=dict(text=arg[0], font=dict(size=22), yref="container"),
+                    margin=dict(l=0, r=0, t=0, b=0),
                     geo=dict(
                         showframe=False,
                         showcoastlines=False,
                         projection_type="cylindrical equal area",
                     ),
-                    height=500,
+                    height=400,
                     font_size=15,
                     annotations=[
-                        dict(x=0.5, y=0, showarrow=False, text=footer),
+                        dict(x=0.5, y=0.01, showarrow=False, text=footer),
                     ],
                 )
-                graphs.append(fig)
+                graphs.append(
+                    SkeGraphAIO(arg[0], figure=fig, config=dict(responsive=True))
+                )
 
-    return [html.Div(dcc.Graph(figure=x, config=dict(responsive=True))) for x in graphs]
+    return graphs
