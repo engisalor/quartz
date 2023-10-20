@@ -1,3 +1,5 @@
+# Copyright (c) 2023 Loryn Isaacs
+# This file is part of Quartz, licensed under GPL3+ https://github.com/engisalor/quartz
 import logging
 import os
 from dataclasses import dataclass
