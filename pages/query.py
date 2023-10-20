@@ -452,6 +452,7 @@ def download_frequencies(n_clicks, corpora, attribute, query, data):
         df["corpname"].replace(
             {k: corp_data.dt[k]["name"] for k in corp_data.dt.keys()}, inplace=True
         )
+        df.drop(["params"], axis=1, inplace=True)
         df.reset_index(drop=True, inplace=True)
         file = "~".join(["~".join(df["corpname"].unique()), query, attribute])
         logging.debug(file)
