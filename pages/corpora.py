@@ -11,10 +11,15 @@ app = get_app()
 
 dash.register_page(__name__)
 
+text_file = getattr(env, "CORPORA_MD", None)
+if not text_file:
+    main_text = html.Div(html.H2("Corpora"))
+else:
+    main_text = MarkdownFileAIO()
 
 layout = html.Div(
     [
-        MarkdownFileAIO(getattr(env, "CORPORA_MD", None)),
+        main_text,
         html.Br(),
         dbc.Tabs(
             [
