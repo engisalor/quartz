@@ -25,15 +25,13 @@
 | | |
 |-|-|
 | Keep queries simple and specific | ... and take results with a grain of salt |
-| Up to 3 queries can be made at a time using semicolons | `UN; EU; SDG` |
-| Nothing appears if there are missing results | `UN; non_existent_word` won't work (try again with just `UN`) |
+| Nothing appears if a query has no results | `non_existent_word` |
 | Overly generic queries may break things | querying `the` exceeds retrieval limits in large corpora |
 | Abbreviations can be tricky with case insensitive searches | `UN` includes `un` - a common word in some languages |
 | Searches can include punctuation | `U.N.` works but `;` is prohibited |
 | Symbols may need an extra space | `end of a sentence .` (try both with/without spaces to be sure) |
 | Possessives may need a space in between | `UN's | UN 's`, `United Nations' | United Nations '` |
 | Lemmatization (word forms) isn't always intuitive | `person` gets `persons` but not `people`, `localize` doesn't get `localise` and vice versa |
-| Identical queries break things | `UN; UN` won't work |
 
 #### Settings
 
@@ -42,8 +40,8 @@
 | Data set | |
 |-|-|
 | Corpus | A database of searchable texts. |
-| Attribute | A type of metadata for each corpus (`year`, `author`, `id`, ...). If multiple corpora are selected, only attributes defined as "comparable" will appear. |
-| Attribute value (aka text type) | An attribute (`year`) can have many values (`2000`, `2001`, ...): these can be filtered. Some attributes have many values and only a portion can be displayed. |
+| Attribute (aka text type) | A type of metadata for each corpus (`year`, `author`, `id`, ...). If multiple corpora are selected, only attributes defined as "comparable" appear. |
+| Attribute value | An attribute (`year`) can have many values (`2000`, `2001`, ...): these can be filtered. Some attributes have many values and only a portion can be displayed. |
 
 | Statistics | | |
 |-|-|-|
@@ -58,7 +56,7 @@ This app visualizes frequencies and encourages data exploration. That said, numb
 
 Keep in mind that statistics only allow certain types of comparisons. Since this app disaggregates data by text types, consider the following:
 
-- **frq** indicates "raw" frequencies, which doesn't capture the relative size of different data sets
+- **frq** is an absolute frequency: it doesn't show how *common* queries are relative to corpus size
 - **rel** and **fpm** are best for comparing text types ***within*** a single corpus
 - **reltt** can be used for comparing text types ***across*** corpora (i.e., why it's the default statistic)
 
@@ -102,9 +100,17 @@ The summary table can be shown/hidden with the spreadsheet icon next to the `set
 | M fpm | Mean frequency per million in text types |
 | M frq | Mean occurrences in text types |
 
-#### Data point URL generation
+#### Hyperlinks to concordances
 
-If activated, this feature generates a URL to the Sketch Engine GUI when a specific data point is clicked. Once the point is selected, click the link icon on the top right of the graph to open a new tab.
+Click a data point on a graph to generate a URL to query concordances. Then click the link icon on the top right of the graph to open a new tab. Multiple links are generated if a data point has several corpora: they're color-coded for easy reference.
+
+#### Crossfilters
+
+First select a crossfilter attribute in `settings` and then select a data point from a graph. This generates another graph with frequencies for the crossfilter attribute within the main attribute, e.g., the frequency by `year` of `United Nations` in `country=Guatemala`. Selected crossfilter data points don't get saved when a query URL is copied.
+
+#### Attribute filter
+
+Display or hide attribute values with the `attributes filter` option in `settings`. Keep in mind that not all values appear if an attribute has many values and that values with zero occurrences may not be displayed in graphs. These filters don't apply to crossfilter graphs.
 
 #### Advanced queries
 
