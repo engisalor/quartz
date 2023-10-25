@@ -15,7 +15,7 @@ text_file = getattr(env, "CORPORA_MD", None)
 if not text_file:
     main_text = html.Div(html.H2("Corpora"))
 else:
-    main_text = MarkdownFileAIO()
+    main_text = MarkdownFileAIO(text_file)
 
 layout = html.Div(
     [
