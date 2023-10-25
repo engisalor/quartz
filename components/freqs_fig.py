@@ -135,7 +135,7 @@ def choropleth_figure(
         anno_1 = f"World = {wld}"
         if "frq" in df["statistic"].values:
             frq = df.loc[df["iso3"] == "WLD", "frq"].sum()
-            anno_1 = f"World frq_log10 = {wld} & frq = {int(frq):,}"
+            anno_1 = f"World frq_log10 = {wld} & frq = {frq}"
     else:
         anno_1 = ""
     footer = (
