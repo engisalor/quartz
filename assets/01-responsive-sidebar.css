@@ -1,8 +1,8 @@
 /* Adapted from: https://community.plotly.com/t/sidebar-with-icons-expands-on-hover-and-other-cool-sidebars/67318 */
 
 .sidebar {
-  /* background-color: var(--page-background); */
-  background-image: linear-gradient(#ebeced, white);
+  background-color: var(--page-background);
+  /* background-image: linear-gradient(#f5f6f7, white); */
 }
 
 .sidebar .nav-link span {
@@ -29,23 +29,14 @@
     height: auto;
     position: relative;
   }
+
   .sidebar a {
     float: left;
-  }
-
-  .nav-link i {
-    visibility: hidden;
-    width: 0%;
   }
 
   #page-content {
     margin-left: 20px;
     margin-right: 20px;
-  }
-
-  p.lead {
-    font-size: x-large;
-    font-weight: bold;
   }
 
   h2 {

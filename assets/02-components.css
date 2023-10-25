@@ -2,14 +2,12 @@
 .top-panel {
     display: inline-flex;
     flex-wrap: wrap;
-    margin-bottom: 18px;
     width:100%;
 }
 
 /* popover appearance */
 .popover {
     max-width: 400px;
-    width: 400px;
     font-size: small;
     height: 100%;
 }
@@ -22,7 +20,7 @@
 
 /* controls under a popover heading */
 .settings-options {
-    max-height: 320px;
+    max-height: 200px;
     overflow: scroll;
 }
 
@@ -46,9 +44,73 @@
     color: black;
 }
 
-/* small screens */
-@media (max-width: 400px) {
-    .popover {
-        width: 100%;
+/* container for all graph groups */
+.frequencies-content {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+/* graph loading indicator */
+*[class="frequencies-content"][data-dash-is-loading="true"]{
+    visibility: hidden;
+}
+*[class="frequencies-content"][data-dash-is-loading="true"]::before{
+    content: "Searching...";
+    font-size: 1.25rem;
+    font-weight: 300;
+    display: inline-block;
+    color: var(--tertiary-color);
+    visibility: visible;
+}
+
+/* groups of graphs for each query */
+.graph-group {
+    min-width: 460px;
+    max-width: 800px;
+    flex: 1;
+    margin: 10px;
+}
+
+/* page titles */
+h2 {
+    margin-top: 0rem;
+}
+
+/* graph titles */
+h3 {
+    margin-top: 0rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* hyperlinks to external server */
+.link-div {
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* hyperlink icon */
+.bi.bi-arrow-up-right-square-fill {
+    margin: 0px;
+    color: gray;
+}
+
+/* table toolips */
+.dash-table-tooltip {
+    position:fixed;
+    }
+
+/* Small screens */
+@media (max-width: 480px) {
+    .frequencies-content {
+        max-width: 440px;
+    }
+
+    .graph-group {
+        min-width: 300px;
+        max-width: 440px;
+        flex: 1;
+        margin: 10px;
     }
 }
