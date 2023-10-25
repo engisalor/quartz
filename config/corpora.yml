@@ -6,6 +6,8 @@
 susanne:
   # name shown in graphs
   name: Susanne
+  # unique color code
+  color: "#636EFA"
   # corpus description file
   md_file: config/susanne.md
   # text types to exclude

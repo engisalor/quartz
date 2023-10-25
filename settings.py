@@ -28,7 +28,7 @@ class ENV:
         self.MAX_QUERIES = os.getenv("MAX_QUERIES")
         self.MAX_ITEMS = os.getenv("MAX_ITEMS")
         self.SERVER_URL = os.getenv("SERVER_URL")
-        self.DASH_DEBUG = os.getenv("DASH_DEBUG").lower()
+        self.DASH_DEBUG = os.getenv("DASH_DEBUG")
         for k, v in self.__dict__.items():
             if not v:
                 if k == "GUIDE_MD":
@@ -43,7 +43,10 @@ class ENV:
             if k in ["MAX_QUERIES", "MAX_ITEMS"]:
                 setattr(self, k, int(v))
             if k in ["DASH_DEBUG"]:
-                setattr(self, k, v.lower() == "true")
+                if not v:
+                    setattr(self, k, False)
+                else:
+                    setattr(self, k, v.lower() == "true")
         self.sgex = {
             "api_key": os.getenv("SGEX_API_KEY"),
             "server": os.getenv("SGEX_SERVER"),
@@ -74,6 +77,7 @@ class CorpData:
     def __init__(self):
         # load corpora file
         self.dt = read_yaml(env.CORPORA_YML)
+        self.colors = {v["name"]: v["color"] for k, v in self.dt.items()}
         corp_ids = list(self.dt.keys())
         # make corpinfo calls
         corpinfo_calls = [
