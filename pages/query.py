@@ -324,7 +324,7 @@ def send_requests(input_text, corpora, attribute):
             calls.append(
                 {
                     "call_type": "Freqs",
-                    "q": "aword," + cql,
+                    "q": "alc," + cql,
                     "corpname": corpus,
                     "fcrit": f"{attr} 0",
                     "freq_sort": "freq",
