@@ -1,20 +1,17 @@
 # settings for corpora
-# a label is required for every non-excluded text type/attribute
-# choropleth text types must have ISO3 formatting: `afg`, `ecu`, etc. (case insensitive)
-# comparable text type key-values are formatted as {shared_name: ske_attribute}
 # corpus name used by API
 preloaded/susanne:
   # name shown in graphs
   name: Susanne
   # unique color code
   color: "#636EFA"
-  # corpus description file
-  md_file: markdown/susanne.md
+  # corpus description file (optional)
+  md_file: config/susanne.md
   # text types to exclude
   exclude:
     - doc.wordcount
     - font.type
-  # text type labels
+  # text type labels (required for every non-excluded text type/attribute)
   label:
     doc.file: file
     doc.n: "n"
@@ -22,6 +19,6 @@ preloaded/susanne:
   # text types considered comparable with other corpora
   # comparable:
     # - <VALUE>
-  # text types to visualize w/ choropleth
+  # text types to visualize w/ choropleth (requires ISO3 strings, case insensitive)
   # choropleth:
     # - <VALUE>
