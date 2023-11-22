@@ -9,6 +9,7 @@ from pathlib import Path
 import dash
 import dash_bootstrap_components as dbc
 import pandas as pd
+from aiohttp import ClientConnectionError
 from dash import ALL, Input, Output, State, ctx, dcc, get_app, html
 from flask import request
 from sgex.job import Job
@@ -339,13 +340,15 @@ def send_requests(input_text, corpora, attribute):
     j = Job(params=calls, **env.sgex)
     j.run()
     dfs = []
-    for call in j.data.freqs:
-        df = call.df_from_json()
-        if not df.empty:
-            df["params"] = json.dumps(call.params)
-            df["query"] = df["arg"].replace(query_map)
-        dfs.append(df)
-    return pd.concat(dfs)
+    if not j.errors:
+        for call in j.data.freqs:
+            df = call.df_from_json()
+            if not df.empty:
+                df["params"] = json.dumps(call.params)
+                df["query"] = df["arg"].replace(query_map)
+            dfs.append(df)
+        dfs = pd.concat(dfs)
+    return dfs, j.errors
 
 
 @dash.callback(
@@ -383,12 +386,27 @@ def run_query(
         return html.P("No duplicate queries", className="lead"), None, []
     if len(queries) > env.MAX_QUERIES:
         return (
-            html.P(f"{env.MAX_QUERIES} > queries supported", className="lead"),
+            html.P(f"{env.MAX_QUERIES} >= queries supported", className="lead"),
             None,
             [],
         )
     # get data
-    df = send_requests(input_text, corpora, attribute)
+    df, errors = send_requests(input_text, corpora, attribute)
+    # handle errors
+    if errors:
+        if isinstance(errors[0][0], ClientConnectionError):
+            return html.P("Server connection error", className="lead"), None, []
+        elif isinstance(errors[0][0], str):
+            return (
+                html.P(
+                    f"Server syntax error: {set(([x[0] for x in errors]))}",
+                    className="lead",
+                ),
+                None,
+                [],
+            )
+        else:
+            return html.P("Unknown error", className="lead"), None, []
     if df.empty:
         return html.P("Nothing found", className="lead"), None, []
     # manage filter
