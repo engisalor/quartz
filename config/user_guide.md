@@ -106,7 +106,7 @@ Click a data point on a graph to generate a URL to query concordances. Then clic
 
 #### Crossfilters
 
-First select a crossfilter attribute in `settings` and then select a data point from a graph. This generates another graph with frequencies for the crossfilter attribute within the main attribute, e.g., the frequency by `year` of `United Nations` in `country=Guatemala`. Selected crossfilter data points don't get saved when a query URL is copied.
+First, select a crossfilter attribute in `settings` and then select a data point from a graph. This generates another graph with frequencies for the crossfilter attribute within the main attribute, e.g., the frequency by `year` of `United Nations` in `country=Guatemala`. Selected crossfilter data points don't get saved when a query URL is copied. To disable the crossfilter, select `disable crossfilter` (the first crossfilter option).
 
 #### Attribute filter
 
