@@ -172,26 +172,28 @@ def data_table(data: pd.DataFrame) -> html.Div:
 
     def make_record(c, arg):
         df = data.query("corpname == @c and arg == @arg")
-        attr = " & ".join(df["attribute"].unique())
-        return {
-            "query": " & ".join(df["query"].unique()),
-            "cql": " & ".join(df["arg"].unique()),
-            "corpus": corp_data.dt[c].get("name"),
-            "attribute": corp_data.dt[c]["label"][attr],
-            "n attr.": f'{df["value"].count():,}',
-            "frq corp.": " & ".join([f"{x:,}" for x in df["total_frq"].unique()]),
-            "frq attr.": f'{df["frq"].sum():,}',
-            "fpm corp.": " & ".join([f"{x:,}" for x in df["total_fpm"].unique()]),
-            "M rel %": f'{df["rel"].mean():,.2f}',
-            "M reltt": f'{df["reltt"].mean():,.2f}',
-            "M fpm": f'{df["fpm"].mean():,.2f}',
-            "M frq": f'{df["frq"].mean():,.2f}',
-        }
+        if not df.empty:
+            attr = " & ".join(df["attribute"].unique())
+            return {
+                "query": " & ".join(df["query"].unique()),
+                "cql": " & ".join(df["arg"].unique()),
+                "corpus": corp_data.dt[c].get("name"),
+                "attribute": corp_data.dt[c]["label"][attr],
+                "n attr.": f'{df["value"].count():,}',
+                "frq corp.": " & ".join([f"{x:,}" for x in df["total_frq"].unique()]),
+                "frq attr.": f'{df["frq"].sum():,}',
+                "fpm corp.": " & ".join([f"{x:,}" for x in df["total_fpm"].unique()]),
+                "M rel %": f'{df["rel"].mean():,.2f}',
+                "M reltt": f'{df["reltt"].mean():,.2f}',
+                "M fpm": f'{df["fpm"].mean():,.2f}',
+                "M frq": f'{df["frq"].mean():,.2f}',
+            }
 
     records = []
     for arg in sorted(data["arg"].unique()):
         for c in sorted(data["corpname"].unique()):
             records.append(make_record(c, arg))
+    records = [x for x in records if x]
 
     tooltip = {
         "n attr.": f"Number of text types (up to the {env.MAX_ITEMS} most common)",
