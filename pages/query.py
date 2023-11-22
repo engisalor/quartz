@@ -263,7 +263,7 @@ def update_attribute_radio(corpora, value, options):
 def update_crossfilter_dropdown(corpora, value, options):
     """Controls available crossfilters based on selected corpora."""
     return set_attribute_options(
-        corpora, value, options, extra=[{"label": "no crossfilter", "value": ""}]
+        corpora, value, options, extra=[{"label": "disable crossfilter", "value": ""}]
     )
 
 
@@ -368,7 +368,16 @@ def run_query(
     if isinstance(input_text, str):
         input_text = input_text.strip()
     if not input_text or not len(corpora) or not attribute or not statistics:
-        return html.P("Incomplete settings", className="lead"), None, []
+        messages = []
+        if not input_text:
+            messages.append("No query")
+        if not len(corpora):
+            messages.append("No corpora")
+        if not statistics:
+            messages.append("No statistics")
+        if not attribute:
+            messages.append("No attribute")
+        return html.P("; ".join(messages), className="lead"), None, []
     queries = [x.strip() for x in input_text.split(";") if x.strip()]
     if len(queries) != len(set(queries)):
         return html.P("No duplicate queries", className="lead"), None, []
