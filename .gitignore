@@ -13,3 +13,5 @@ config/*
 !config/corpora-ske.yml
 !config/corpora.md
 !config/susanne.md
+
+local/
