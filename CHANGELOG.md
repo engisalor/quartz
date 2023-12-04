@@ -1,5 +1,38 @@
 # Changelog
 
+## [0.3.1](https://github.com/engisalor/quartz/compare/v0.3.0...v0.3.1) (2023-12-04)
+
+
+### Bug Fixes
+
+* add crossfilter to query page, fixes ([275d7e8](https://github.com/engisalor/quartz/commit/275d7e87a5bef22f9ab7edc8bf3e65b14af5b72c))
+* add error handling to query ([b98d0e2](https://github.com/engisalor/quartz/commit/b98d0e2a436b571c5732797bc385105d723cbf09))
+* add local gitignore dir ([ac8f7c5](https://github.com/engisalor/quartz/commit/ac8f7c50dbfc952d37c048eba3330611497c5ee0))
+* add url module ([fddf83c](https://github.com/engisalor/quartz/commit/fddf83c345d9e77891a4ec88bb771152a8cdb7cc))
+* allow  no debug var, add corpus colors ([5f1c461](https://github.com/engisalor/quartz/commit/5f1c461fcef6f96f95952c92b34fe53926f86862))
+* choropleth frq annotation ([c42678d](https://github.com/engisalor/quartz/commit/c42678d5258325812e11e76315d6b78798166cc5))
+* corpora page add default header ([3b32d95](https://github.com/engisalor/quartz/commit/3b32d95e1c9a10eefeee4e87a884be70c705d9c7))
+* css responsiveness, new components ([a136f00](https://github.com/engisalor/quartz/commit/a136f003ad737ec39de9a066190c61fcded2d1d7))
+* fix md file loading error ([694cc3c](https://github.com/engisalor/quartz/commit/694cc3c249b715a438978b078607430b96be937d))
+* freqs data_table fix err if no data ([6804c6d](https://github.com/engisalor/quartz/commit/6804c6de9c040e7d2328549c64d7baf5a6ae2fac))
+* improve aio component for graph group ([eaa1340](https://github.com/engisalor/quartz/commit/eaa1340ac1ec3906afac3ac6a860a57bf8330542))
+* improve query page warnings ([5c8c39f](https://github.com/engisalor/quartz/commit/5c8c39f3242085235c67950247ea2361d1ee6955))
+* release-please files ([e95fb25](https://github.com/engisalor/quartz/commit/e95fb2585876b4eb7fc67f508a841df20922ca17))
+* remove params from csv download ([be29437](https://github.com/engisalor/quartz/commit/be29437b2edfe2390e1ad17079aae85d4a2a331b))
+* split freqs_viz file, various fixes ([679ed24](https://github.com/engisalor/quartz/commit/679ed24bf7d3d8e2c796eaaa526a289f3f92a430))
+* update example config yaml files ([f1ea60e](https://github.com/engisalor/quartz/commit/f1ea60ea87562aa4505d9068cc23eaffe761742a))
+* use `alc,` for query strings ([b7cb807](https://github.com/engisalor/quartz/commit/b7cb807c5a1b7d6c9835fa0a0d7b498a4c8357e6))
+
+
+### Documentation
+
+* add color code to config examples ([c2af5e3](https://github.com/engisalor/quartz/commit/c2af5e3a760f8cf5a555908409b5d03c872f3330))
+* add license notice ([5827993](https://github.com/engisalor/quartz/commit/5827993db810da1464a48a3f91d9ad0904207368))
+* update env-example ([5db2e40](https://github.com/engisalor/quartz/commit/5db2e40cfa77fa8b09e66eedc8147bcec83758ae))
+* update guide ([224dec3](https://github.com/engisalor/quartz/commit/224dec3c6712b288be962e89f63a8e34e5966d97))
+* update readme ([9ce74be](https://github.com/engisalor/quartz/commit/9ce74be6d10a09d1158b3403d9306da743dd0669))
+* update user guide ([b08ae80](https://github.com/engisalor/quartz/commit/b08ae80748e75319c53befdff3d4a164cea61c19))
+
 ## [0.3.0](https://github.com/engisalor/quartz/compare/v0.2.1...v0.3.0) (2023-10-19)
 
 
