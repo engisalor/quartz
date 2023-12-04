@@ -74,7 +74,13 @@ class ENV:
 class CorpData:
     """Dataclass with corpus data."""
 
-    def __init__(self):
+    def get_label(self, row: dict) -> str | None:
+        return self.dt.get(row["corpus"]).get("label").get(row["attr"], row["attr"])
+
+    def is_in_list(self, row: dict, key: str) -> bool:
+        return row["attr"] in self.dt.get(row["corpus"]).get(key, [])
+
+    def run(self):
         # load corpora file
         self.dt = read_yaml(env.CORPORA_YML)
         self.colors = {v["name"]: v["color"] for k, v in self.dt.items()}
@@ -106,13 +112,6 @@ class CorpData:
         wordlist_calls = []
         self.structures = pd.DataFrame()
         self.sizes = pd.DataFrame()
-
-        def get_label(row: dict) -> str | None:
-            return self.dt.get(row["corpus"]).get("label").get(row["attr"], row["attr"])
-
-        def is_in_list(row: dict, key: str) -> bool:
-            return row["attr"] in self.dt.get(row["corpus"]).get(key, [])
-
         for x in range(len(corp_ids)):
             _structures = j.data.corpinfo[x].structures_from_json()
             _structures["corpus"] = corp_ids[x]
@@ -120,14 +119,14 @@ class CorpData:
                 _structures["structure"] + "." + _structures["attribute"]
             )
             _structures["comparable"] = _structures.apply(
-                is_in_list, key="comparable", axis=1
+                self.is_in_list, key="comparable", axis=1
             )
-            _structures["label"] = _structures.apply(get_label, axis=1)
+            _structures["label"] = _structures.apply(self.get_label, axis=1)
             _structures["exclude"] = _structures.apply(
-                is_in_list, key="exclude", axis=1
+                self.is_in_list, key="exclude", axis=1
             )
             _structures["choropleth"] = _structures.apply(
-                is_in_list, key="choropleth", axis=1
+                self.is_in_list, key="choropleth", axis=1
             )
             self.structures = pd.concat([self.structures, _structures])
             _sizes = j.data.corpinfo[x].sizes_from_json()
@@ -146,6 +145,9 @@ class CorpData:
             _ttypes = call.df_from_json()
             _ttypes["corpus"] = call.params["corpname"]
             self.ttypes = pd.concat([self.ttypes, _ttypes])
+
+    def __init__(self):
+        self.run()
 
 
 env = ENV()
