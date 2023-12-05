@@ -62,6 +62,14 @@ Keep in mind that statistics only allow certain types of comparisons. Since this
 
 See Sketch Engine's [user guide](https://www.sketchengine.eu/guide/) for more information on interpreting corpus data, particularly the glossary and details on statistics.
 
+#### Limited data sample warning
+
+Only the top N results are retrieved by default (usually 50 or 250), by absolute frequency (**frq**). Frequencies for other statistics are limited to this initial data sample. As a result, some data points may be missing when viewing frequency statistics like **reltt**. For example, in the query `climate resilience` by country in the English ReliefWeb corpus, Grenada has the 2nd highest **reltt** but the 56th highest **frq**. Yet if the data sample is limited to 50 countries, Grenada won't be included.
+
+To correctly interpret data, sample size is a key factor. The absence of one country (or other text type value) shouldn't be taken as definitive unless the sample size is large enough to include every possible value. If hyperlinks to concordances are available (see section further below), the absence/presence of a data point can be verified with Sketch Engine's Frequency page.
+
+This is a limit of the API and will be addressed in the future, if possible. Limiting the sample size is needed since text types can have millions of values, which couldn't be graphed effectively. Remember: this app explores as much data as possible, but not necessarily everything.
+
 #### Multivalue attributes
 
 While some attributes have a single unique value (e.g., timestamps), others can have several. A `theme` attribute could include a list of topics, like Food, Education, and Sanitation. This could be tagged in a corpus as a single string with a separator between values (`Food|Education|Sanitation`).
