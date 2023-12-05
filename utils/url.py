@@ -4,6 +4,8 @@ import json
 import re
 from urllib import parse
 
+from sgex.query import _query_escape
+
 
 def split_q(q: str | list) -> tuple:
     """Returns a tuple of (default_attr, cql) from a query (e.g., 'aword,"sun"')."""
@@ -53,7 +55,7 @@ def cql_ttype_filter(
         `https://app.sketchengine.eu/#concordance?`
     """
     struct, attr = split_attr_path(attr_path)
-    _filter = f" [] within <{struct} {attr}={json.dumps(value,ensure_ascii=False)} />"
+    _filter = f' [] within <{struct} {attr}="{_query_escape(value)}" />'
     _, cql = split_q(params["q"])
     template = [
         ("corpname", params["corpname"]),
