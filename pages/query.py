@@ -28,10 +28,35 @@ title = "Query"
 _path = "/"
 dash.register_page(__name__, path=_path, title=title)
 
+sorting_options = [
+    {
+        "label": [
+            html.Span(
+                "rel",
+                style={"paddingLeft": 3, "paddingRight": 3},
+                title="Sort results by relative frequency",
+            ),
+        ],
+        "value": "rel",
+    },
+    {
+        "label": [
+            html.Span(
+                "frq",
+                style={"paddingLeft": 3, "paddingRight": 3},
+                title="Sort results by absolute frequency",
+            ),
+        ],
+        "value": "frq",
+    },
+]
+
 
 def layout(
     query="",
     corpora="",
+    sort="",
+    page="",
     statistics="",
     attribute="",
     crossfilter="",
@@ -39,6 +64,8 @@ def layout(
     **args,
 ):
     corpora = redirect.corpora(corpora)
+    sort = redirect.sort(sort)
+    page = redirect.page(page)
     statistics = redirect.statistics(statistics)
     attribute = redirect.attribute(attribute)
     crossfilter = redirect.attribute(crossfilter)
@@ -73,6 +100,41 @@ def layout(
                 className="settings-options",
             ),
         ]
+    )
+
+    crossfilter_sorting_box = html.Div(
+        [
+            aio.PopoverHeaderAIO(
+                "Sort (crossfilter)",
+                title="Choose how to sort crossfilter results (by frequency type)",
+            ),
+            dcc.RadioItems(
+                options=sorting_options,
+                value=sort,
+                id="crossfilter-sort-picker",
+                className="settings-options",
+            ),
+        ],
+        style={"width": "50%"},
+    )
+
+    crossfilter_page_box = html.Div(
+        [
+            aio.PopoverHeaderAIO(
+                "Page (crossfilter)",
+                title=f"View page N of crossfilter results ({env.MAX_ITEMS} / page)",
+            ),
+            dcc.Input(
+                id="crossfilter-page-picker",
+                type="number",
+                min=1,
+                step=1,
+                placeholder="page",
+                value=1,
+                style={"width": "100%"},
+            ),
+        ],
+        style={"width": "50%"},
     )
 
     stats_box = html.Div(
@@ -149,6 +211,23 @@ def layout(
                 color="light",
                 title="Show/hide settings",
             ),
+            dcc.Input(
+                id="page-picker",
+                type="number",
+                min=1,
+                step=1,
+                placeholder="page",
+                value=1,
+                style={"width": "70px"},
+                debounce=True,
+            ),
+            dcc.RadioItems(
+                options=sorting_options,
+                value=sort,
+                id="sort-picker",
+                className="settings-options",
+                inline=True,
+            ),
             html.I(
                 id="table-button",
                 title="Show/hide table",
@@ -185,6 +264,10 @@ def layout(
                             stats_box,
                             attribute_box,
                             crossfilter_box,
+                            html.Div(
+                                [crossfilter_sorting_box, crossfilter_page_box],
+                                style={"display": "flex"},
+                            ),
                             filter_box,
                         ]
                     )
@@ -307,7 +390,7 @@ def toggle_table_collapse(n, is_open):
     return is_open
 
 
-def send_requests(input_text, corpora, attribute):
+def send_requests(input_text, corpora, attribute, sort, page):
     queries = [x.strip() for x in input_text.split(";") if x.strip()]
     queries = queries[: env.MAX_QUERIES]
     calls = []
@@ -328,9 +411,9 @@ def send_requests(input_text, corpora, attribute):
                     "q": "alc," + cql,
                     "corpname": corpus,
                     "fcrit": f"{attr} 0",
-                    "freq_sort": "freq",
+                    "freq_sort": sort,
                     "fmaxitems": env.MAX_ITEMS,
-                    "fpage": 1,
+                    "fpage": page,
                     "group": 0,
                     "showpoc": 1,
                     "showreltt": 1,
@@ -361,11 +444,22 @@ def send_requests(input_text, corpora, attribute):
     Input("attribute-picker", "value"),
     Input("attribute-filter", "value"),
     Input("statistic-picker", "value"),
+    Input("sort-picker", "value"),
+    Input("page-picker", "value"),
     State("query-input", "value"),
     State("attribute-filter", "options"),
 )
 def run_query(
-    n_submit, n_clicks, corpora, attribute, a_filter, statistics, input_text, a_options
+    n_submit,
+    n_clicks,
+    corpora,
+    attribute,
+    a_filter,
+    statistics,
+    sort,
+    page,
+    input_text,
+    a_options,
 ):
     # parse inputs
     if isinstance(input_text, str):
@@ -382,6 +476,8 @@ def run_query(
             messages.append("No attribute")
         return html.P("; ".join(messages), className="lead"), None, []
     queries = [x.strip() for x in input_text.split(";") if x.strip()]
+    if not isinstance(page, int) or not page > 0:
+        return html.P("Page must be a positive integer", className="lead"), None, []
     if len(queries) != len(set(queries)):
         return html.P("No duplicate queries", className="lead"), None, []
     if len(queries) > env.MAX_QUERIES:
@@ -391,7 +487,7 @@ def run_query(
             [],
         )
     # get data
-    df, errors = send_requests(input_text, corpora, attribute)
+    df, errors = send_requests(input_text, corpora, attribute, sort, page)
     # handle errors
     if errors:
         if isinstance(errors[0][0], ClientConnectionError):
@@ -417,8 +513,8 @@ def run_query(
     if a_filter and a_options and len([x for x in a_filter if x not in a_options]):
         a_filter = []
     # prepare data
-    table = freqs_fig.data_table(df)
-    df = freqs_fig.prep_data(corpora, attribute, a_filter, statistics, df)
+    table = freqs_fig.data_table(df, sort, page)
+    df = freqs_fig.prep_data(corpora, attribute, a_filter, statistics, sort, page, df)
     if df.empty:
         return html.P("Nothing to graph", className="lead"), table, []
     # draw figs
@@ -474,26 +570,43 @@ def copy_url(
     State("query-input", "value"),
     State({"type": "Graph1", "group": ALL}, "clickData"),
     State("crossfilter-picker", "value"),
+    State("sort-picker", "value"),
+    State("page-picker", "value"),
+    State("crossfilter-sort-picker", "value"),
+    State("crossfilter-page-picker", "value"),
     prevent_initial_call=True,
 )
 def download_frequencies(
-    n_clicks, corpora, attribute, input_text, clickdata, crossfilter
+    n_clicks,
+    corpora,
+    attribute,
+    input_text,
+    clickdata,
+    crossfilter,
+    sort,
+    page,
+    crossfilter_sorting,
+    crossfilter_page,
 ):
     """Prepares a file of the current data sample to download."""
 
     dfs = [
-        _df_from_crossfilter(cd, crossfilter, None)
+        _df_from_crossfilter(
+            cd, crossfilter, None, crossfilter_sorting, crossfilter_page
+        )
         for cd in clickdata
         if clickdata and crossfilter and cd
     ]
     dfs = [x[0] for x in dfs if x]
-    df = send_requests(input_text, corpora, attribute)
+    df = send_requests(input_text, corpora, attribute, sort, page)
     df = pd.concat(dfs + [df])
 
     if not df.empty:
         df["corpname"].replace(
             {k: corp_data.dt[k]["name"] for k in corp_data.dt.keys()}, inplace=True
         )
+        df["sort"] = sort
+        df["page"] = page
         df.drop(["params"], axis=1, inplace=True)
         df.reset_index(drop=True, inplace=True)
         file = "~".join(["~".join(df["corpname"].unique()), input_text, attribute])

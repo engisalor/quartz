@@ -54,6 +54,24 @@ def corpora(corpora):
         return corpora.split(";")
 
 
+def sort(sort):
+    # limit to one of two options
+    if sort not in ["frq", "rel"]:
+        return env.SORTING
+    else:
+        return sort
+
+
+def page(page):
+    # limit to one of two options
+    if not page or not isinstance(page, int):
+        return 1
+    if page < 1:
+        return 1
+    else:
+        return page
+
+
 def statistics(statistics):
     # default to first statistic
     if not len(statistics):
