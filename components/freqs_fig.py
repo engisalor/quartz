@@ -9,7 +9,9 @@ from dash import dash_table, html
 from settings import corp_data, env, stats
 
 
-def prep_data(corpora, attribute, attribute_filter, statistics, df: pd.DataFrame):
+def prep_data(
+    corpora, attribute, attribute_filter, statistics, sort, page, df: pd.DataFrame
+):
     """Prepares frequency data from API calls for drawing figures."""
     # filtering
     query_args = []
@@ -34,6 +36,8 @@ def prep_data(corpora, attribute, attribute_filter, statistics, df: pd.DataFrame
     )
     melted_slice.query("statistic in @statistics", inplace=True)
     melted_slice.sort_values("value", inplace=True)
+    melted_slice["sort"] = sort
+    melted_slice["page"] = page
     return melted_slice
 
 
@@ -79,7 +83,7 @@ def bar_figure(data: pd.DataFrame, arg=None) -> px.bar:
     fig.update_layout(
         hovermode="x unified",
         plot_bgcolor="#ffffff",
-        margin=dict(l=0, r=0, t=65),
+        margin=dict(l=0, r=0, t=20),
         xaxis_title="",
         # yaxis_title="",
         xaxis={"categoryorder": "category ascending"},
@@ -99,25 +103,18 @@ def bar_figure(data: pd.DataFrame, arg=None) -> px.bar:
 
     fig.for_each_annotation(bar_annotation)
 
-    def set_attr_annotation_y(statistics):
-        "Adjusts y axis spacing for top annotation based on number of facets."
-        if len(statistics) == 4:
-            return 1.08
-        elif len(statistics) == 3:
-            return 1.10
-        elif len(statistics) == 2:
-            return 1.15
-        else:
-            return 1.29
+    text = f'attr=`{"&".join(set([x for x in attrs if x]))}`'
+    text += f' sort=`{"&".join(df["sort"].unique())}`'
+    text += f' page=`{"&".join(df["page"].unique().astype(str))}`'
+    text = "<br>".join(textwrap.wrap(text, 80))
 
     fig.add_annotation(
         xref="paper",
         yref="paper",
         x=0.5,
-        y=set_attr_annotation_y(df["statistic"].unique()),
         font_size=15,
         showarrow=False,
-        text="attr=" + " & ".join(set([x for x in attrs if x])),
+        text=text,
     )
     return fig
 
@@ -127,20 +124,23 @@ def choropleth_figure(
 ) -> px.choropleth:
     """Builds a choropleth figure based on input variables."""
     # annotations
-    anno_0 = f"Mean of {len(df)} values = {round(df[stat].mean(), 2):,}"
+    sort = "&".join(df["sort"].unique())
+    page = "&".join(df["page"].unique().astype(str))
+    anno_0 = f"mean={round(df[stat].mean(), 2):,} (of {len(df)})"
+    anno_2 = f"sort={sort} page={page}"
     wld = df.loc[df["iso3"] == "WLD", stat].sum().round(2)
     if len(df.loc[df["iso3"] == "WLD"]) > 1:
         raise ValueError("more than one WLD row found")
     elif wld:
-        anno_1 = f"World = {wld}"
+        anno_1 = f"World={wld}"
         if "frq" in df["statistic"].values:
             frq = df.loc[df["iso3"] == "WLD", "frq"].sum()
-            anno_1 = f"World frq_log10 = {wld} & frq = {frq}"
+            anno_1 = f"World frq_log10={wld} frq={frq}"
     else:
         anno_1 = ""
     footer = (
         f'{corp_data.dt[corpus]["name"]}\t{corp_data.dt[corpus]["label"][attribute]}'
-        + f"<br>{anno_0}<br>{anno_1}"
+        + f"<br>{anno_1}<br>{anno_0}<br>{anno_2}"
     )
     # create figure
     fig = px.choropleth(
@@ -167,7 +167,7 @@ def choropleth_figure(
     return fig
 
 
-def data_table(data: pd.DataFrame) -> html.Div:
+def data_table(data: pd.DataFrame, sort, page) -> html.Div:
     """Builds a table of summary statistics."""
 
     def make_record(c, arg):
@@ -180,6 +180,8 @@ def data_table(data: pd.DataFrame) -> html.Div:
                 "corpus": corp_data.dt[c].get("name"),
                 "attribute": corp_data.dt[c]["label"][attr],
                 "n attr.": f'{df["value"].count():,}',
+                "sort": sort,
+                "page": page,
                 "frq corp.": " & ".join([f"{x:,}" for x in df["total_frq"].unique()]),
                 "frq attr.": f'{df["frq"].sum():,}',
                 "fpm corp.": " & ".join([f"{x:,}" for x in df["total_fpm"].unique()]),
@@ -197,6 +199,8 @@ def data_table(data: pd.DataFrame) -> html.Div:
 
     tooltip = {
         "n attr.": f"Number of text types (up to the {env.MAX_ITEMS} most common)",
+        "sort": "Frequency sort method",
+        "page": "Current page",
         "frq corp.": "Occurrences in the whole corpus",
         "frq attr.": "Sum of occurrences in each attribute",
         "fpm corp.": "Frequency per million tokens in the whole corpus",

@@ -1,12 +1,14 @@
 # Copyright (c) 2023 Loryn Isaacs
 # This file is part of Quartz, licensed under GPL3+ https://github.com/engisalor/quartz
 import json
+import textwrap
 import uuid
 
 import dash_bootstrap_components as dbc
 import pandas as pd
 from dash import MATCH, Input, Output, State, callback, ctx, dcc, html
 from sgex.job import Job
+from sgex.query import _query_escape
 
 from components.freqs_fig import bar_figure, prep_data
 from settings import corp_data, env
@@ -34,7 +36,9 @@ def _update_link(point: dict) -> dbc.NavLink:
     )
 
 
-def _params_from_point(point: dict, crossfilter) -> tuple:
+def _params_from_point(
+    point: dict, crossfilter, crossfilter_sorting, crossfilter_page
+) -> tuple:
     """Builds API parameters from figure click data point."""
     params, attr_path, value = point.get("customdata", [None] * 3)[:3]
     params = json.loads(params)
@@ -42,18 +46,24 @@ def _params_from_point(point: dict, crossfilter) -> tuple:
     label_map = {v: k for k, v in corp_data.dt[corpus]["label"].items()}
     struct, attr = url.split_attr_path(attr_path)
     params["call_type"] = "Freqs"
-    params["q"] += f" within <{struct} {attr}={json.dumps(value,ensure_ascii=False)} />"
+    params["q"] += f' within <{struct} {attr}="{_query_escape(value)}" />'
     params["fcrit"] = f"{label_map[crossfilter]} 0"
+    params["freq_sort"] = crossfilter_sorting
+    params["fpage"] = crossfilter_page
     # also try: [f"{x} 0" for x in corp_data.dt[_params["corpname"]]["label"].keys()]
-    x_suffix = corp_data.dt[corpus]["label"][attr_path] + f"={value}"
+    x_suffix = corp_data.dt[corpus]["label"][attr_path] + f"=`{value}`"
     return params, x_suffix
 
 
-def _df_from_crossfilter(clickdata: dict, crossfilter, title) -> tuple:
+def _df_from_crossfilter(
+    clickdata: dict, crossfilter, title, crossfilter_sorting, crossfilter_page
+) -> tuple:
     """Runs API calls based on figure click data."""
     params = []
     for point in clickdata["points"]:
-        _params, x_suffix = _params_from_point(point, crossfilter)
+        _params, x_suffix = _params_from_point(
+            point, crossfilter, crossfilter_sorting, crossfilter_page
+        )
         params.append(_params)
     j = Job(params=params, **env.sgex)
     j.run()
@@ -64,6 +74,11 @@ def _df_from_crossfilter(clickdata: dict, crossfilter, title) -> tuple:
         df["query"] = title
         dfs.append(df)
     return pd.concat(dfs), x_suffix
+
+
+def _pop_attr_annotation(annotation):
+    if annotation.text.startswith("attr"):
+        annotation.update(text="")
 
 
 class SkeGraphAIO(html.Div):
@@ -110,11 +125,18 @@ class SkeGraphAIO(html.Div):
 
         title_div = html.Div(
             children=[
-                html.H3(title),
+                html.H3(title, style={"margin-bottom": "0px"}),
                 dcc.Store(id=self.ids.title(aio_id), data=title),
             ],
             className="title-div",
         )
+
+        text = ""
+        for annotation in kwargs["figure"].layout.annotations:
+            if annotation.text.startswith("attr"):
+                text += annotation.text
+        text = "<br>".join(textwrap.wrap(text, 80))
+        kwargs["figure"].for_each_annotation(_pop_attr_annotation)
 
         graph1_div = html.Div(
             children=[
@@ -126,6 +148,7 @@ class SkeGraphAIO(html.Div):
                     id=self.ids.link1(aio_id),
                     className="link-div",
                 ),
+                dcc.Markdown(text),
                 dcc.Graph(id=self.ids.graph1(aio_id), **kwargs),
             ],
             id=self.ids.graph1_div(aio_id),
@@ -171,29 +194,52 @@ class SkeGraphAIO(html.Div):
         Output(ids.graph2_div(MATCH), "children"),
         Input(ids.graph1(MATCH), "clickData"),
         Input("crossfilter-picker", "value"),
+        Input(ids.title(MATCH), "data"),
+        Input("crossfilter-sort-picker", "value"),
+        Input("crossfilter-page-picker", "value"),
         State("corpora-picker", "value"),
         State("attribute-picker", "value"),
         State("statistic-picker", "value"),
-        Input(ids.title(MATCH), "data"),
+        State("sort-picker", "value"),
     )
-    def make_graph2(clickdata, crossfilter, corpora, attribute, statistics, title):
+    def make_graph2(
+        clickdata,
+        crossfilter,
+        title,
+        crossfilter_sorting,
+        crossfilter_page,
+        corpora,
+        attribute,
+        statistics,
+        sort,
+    ):
         id = ctx.outputs_list["id"] | {"type": "Graph2"}
         if not crossfilter:
             return html.P("Crossfilter disabled", className="lead")
         if not clickdata:
             return html.P("Select a data point to crossfilter", className="lead")
 
-        df, x_suffix = _df_from_crossfilter(clickdata, crossfilter, title)
+        df, x_suffix = _df_from_crossfilter(
+            clickdata, crossfilter, title, crossfilter_sorting, crossfilter_page
+        )
         if df.empty:
             return html.P("Nothing found", className="lead")
 
-        def crossfilter_annotation(annotation):
-            if annotation.text.startswith("attr"):
-                annotation.update(text=f"{annotation.text} & {x_suffix}")
-
-        df = prep_data(corpora, crossfilter, [], statistics, df)
+        df = prep_data(
+            corpora,
+            crossfilter,
+            [],
+            statistics,
+            crossfilter_sorting,
+            crossfilter_page,
+            df,
+        )
         fig = bar_figure(df)
-        fig.for_each_annotation(crossfilter_annotation)
+        text = ""
+        for annotation in fig.layout.annotations:
+            if annotation.text.startswith("attr"):
+                text += f"{x_suffix} {annotation.text}"
+        fig.for_each_annotation(_pop_attr_annotation)
         return [
             html.Div(
                 html.I(
@@ -203,5 +249,6 @@ class SkeGraphAIO(html.Div):
                 id=id | {"type": "Link2"},
                 className="link-div",
             ),
+            dcc.Markdown(text),
             dcc.Graph(figure=fig, id=id | {"type": "Graph2"}),
         ]

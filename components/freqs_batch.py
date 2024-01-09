@@ -44,7 +44,7 @@ def choropleth_batch(data: pd.DataFrame) -> html.Div:
                 fig = choropleth_figure(df, c, stat, attribute, hover_data)
                 graphs.append(
                     SkeGraphAIO(
-                        title=" & ".join(df["query"].unique()),
+                        title="&".join(df["query"].unique()),
                         figure=fig,
                         config=dict(responsive=True),
                     )
