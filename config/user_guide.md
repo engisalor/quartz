@@ -37,7 +37,7 @@
 
 *Parameters to select*
 
-| Data set | |
+| Dataset | |
 |-|-|
 | Corpus | A database of searchable texts. |
 | Attribute (aka text type) | A type of metadata for each corpus (`year`, `author`, `id`, ...). If multiple corpora are selected, only attributes defined as "comparable" appear. |
@@ -50,7 +50,20 @@
 | fpm | Frequency per million | How often a query occurs for every million words in a corpus |
 | reltt | Relative density per million in text type | How often a query occurs for every million words in a text type |
 
+| Sorting method* | |
+|-|-|
+| `frq` | Get results with the highest absolute frequency |
+| `rel` | Get results with the highest relative frequency |
+
+\*Sorting applies when an attribute has too many values to show at once (see below warning on limited sample sizes)
+
+| Paging | |
+|-|-|
+| `1`, `2`, etc. | If an attribute has many values, only a portion can be graphed at once: change the page to see more results |
+
 #### Interpreting data
+
+##### The limits of statistics
 
 This app visualizes frequencies and encourages data exploration. That said, numbers can't tell the whole story: reading source texts is essential for proper interpretation.
 
@@ -62,13 +75,26 @@ Keep in mind that statistics only allow certain types of comparisons. Since this
 
 See Sketch Engine's [user guide](https://www.sketchengine.eu/guide/) for more information on interpreting corpus data, particularly the glossary and details on statistics.
 
-#### Limited data sample warning
+##### Limited sample size warning
 
-Only the top N results are retrieved by default (usually 50 or 250), by absolute frequency (**frq**). Frequencies for other statistics are limited to this initial data sample. As a result, some data points may be missing when viewing frequency statistics like **reltt**. For example, in the query `climate resilience` by country in the English ReliefWeb corpus, Grenada has the 2nd highest **reltt** but the 56th highest **frq**. Yet if the data sample is limited to 50 countries, Grenada won't be included.
+Only the top N results are retrieved by default (usually 50 or 250) using the sort method (`absolute` or `relative`). If an attribute has N values or fewer, all available data are included in graph. This determines how data samples are collected and has big implications for data interpretation.
 
-To correctly interpret data, sample size is a key factor. The absence of one country (or other text type value) shouldn't be taken as definitive unless the sample size is large enough to include every possible value. If hyperlinks to concordances are available (see section further below), the absence/presence of a data point can be verified with Sketch Engine's Frequency page.
+###### Example 1
 
-This is a limit of the API and will be addressed in the future, if possible. Limiting the sample size is needed since text types can have millions of values, which couldn't be graphed effectively. Remember: this app explores as much data as possible, but not necessarily everything.
+Since the English ReliefWeb corpus has fewer than 50 years, `N<50` and all data is graphed when querying the year attribute. The sort method doesn't matter, since the sample size is the full dataset.
+
+###### Example 2
+
+Since the English ReliefWeb corpus has hundreds of countries, `N>50` and only the top 50 will be graphed based on the sort method:
+
+- if sort is `absolute`, the 50 countries with the highest absolute frequency `frq` will be graphed
+- if sort is `relative`, the 50 countries with the highest relative frequency `rel`/`reltt` will be graphed
+
+Only a portion of the dataset can be graphed for the country attribute if there are results for over 50 countries. For instance, in the query `climate resilience`, Grenada has the 2nd highest **reltt** but the 56th highest **frq**. Yet Grenada won't be included when sort is `absolute` and 50 is the maximum number of values displayed.
+
+To correctly interpret data, the sort method and sample size are key factors. The absence of one country (or other text type value) shouldn't be taken as definitive unless the sample size is large enough to include every possible value. The the order of values and which are included can vary according to these settings.
+
+>Limiting the sample size (`N < ∞`) is needed since text types can have millions of values, which can't be graphed effectively with bar charts. Remember: this app explores as much data as possible, but not necessarily everything all at once.
 
 #### Multivalue attributes
 
