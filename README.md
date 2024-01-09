@@ -1,6 +1,6 @@
 # Quartz
 
-Quartz is a container app template for visualizing corpus data from Sketch Engine servers. It's a portable alternate interface that focuses on graphing quantitative data for linguistic analysis. Set up access to your corpora, make API queries to a Sketch Engine or NoSketch Engine server, and view results with interactive graphs.
+Quartz is a container app template for visualizing corpus data from Sketch Engine servers. It's a portable alternate interface that focuses on graphing quantitative data for linguistic analysis. Set up access to your corpora, make queries via API requests to a Sketch Engine or NoSketch Engine server, and view results with interactive graphs.
 
 Some default graphing features are included, but the repo is designed for adaptation to specific projects. Quartz is made with Python, the Dash framework and Docker. To use it you'll need API access to a Sketch Engine or NoSketch Engine server.
 
@@ -25,9 +25,8 @@ Related software:
 1. Clone the repo
 2. Set up environment variables in `.env` (copy and rename `.env-example` to get started)
 3. Set up configuration files in `config/` and make a `data/` directory for storing data
-4. Option 1: run Quartz directly as a Flask app (for testing or local usage without Docker, e.g., `set -a && source .env && set +a && python app.py`)
-5. Option 2: build and use the Docker image `docker-compose up`
-6. Visit the app at `http://127.0.0.1:8080/` and make a query to make sure it works
+4. Option 1: run Quartz directly as a Flask app (for testing or local usage without Docker, e.g., `set -a && source .env && set +a && python app.py`); visit the app at `http://127.0.0.1:8080/` and make a test query
+5. Option 2: build and use the Docker image `docker-compose up` (doesn't have access to localhost by default)
 
 To make queries to the Sketch Engine server, get an [API key](https://www.sketchengine.eu/documentation/api-documentation/) and review their [fair use policy](https://www.sketchengine.eu/fair-use-policy/).
 
@@ -96,7 +95,7 @@ Quartz can be used without much knowledge of corpus linguistics, but a range of 
 
 ### Development
 
-API-based data collection requires understanding the [Sketch Grammar Explorer](https://github.com/engisalor/sketch-grammar-explorer) package (SGEX, a Sketch Engine API wrapper); try it out as a standalone tool if you plan on doing custom data processing. Also see [pages/freqs_viz.py](/pages/freqs_viz.py) for examples of how to make custom visualizations.
+API-based data collection requires understanding the [Sketch Grammar Explorer](https://github.com/engisalor/sketch-grammar-explorer) package (SGEX, a Sketch Engine API wrapper); try it out as a standalone tool if you plan on doing custom data processing. Also see [/components/freqs_fig.py](/components/freqs_fig.py) for examples of how to make custom visualizations.
 
 ## About
 
