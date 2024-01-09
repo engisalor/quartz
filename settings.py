@@ -27,6 +27,7 @@ class ENV:
         self.GUIDE_MD = os.getenv("GUIDE_MD")
         self.MAX_QUERIES = os.getenv("MAX_QUERIES")
         self.MAX_ITEMS = os.getenv("MAX_ITEMS")
+        self.SORTING = os.getenv("SORTING")
         self.SERVER_URL = os.getenv("SERVER_URL")
         self.DASH_DEBUG = os.getenv("DASH_DEBUG")
         for k, v in self.__dict__.items():
@@ -47,6 +48,9 @@ class ENV:
                     setattr(self, k, False)
                 else:
                     setattr(self, k, v.lower() == "true")
+            if k in ["SORTING"]:
+                if not v:
+                    setattr(self, k, "rel")
         self.sgex = {
             "api_key": os.getenv("SGEX_API_KEY"),
             "server": os.getenv("SGEX_SERVER"),
