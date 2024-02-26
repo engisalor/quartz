@@ -30,7 +30,7 @@ Related software:
 
 To make queries to the Sketch Engine server, get an [API key](https://www.sketchengine.eu/documentation/api-documentation/) and review their [fair use policy](https://www.sketchengine.eu/fair-use-policy/).
 
-To work with your own server, check out NoSketch Engine. Accessing any corpus on any (No)SkE server should work.
+To work with your own server, check out NoSketch Engine. Accessing any corpus on any (No)SkE server should work as long as the config file is properly defined.
 
 >Warning: Quartz expects the (No)SkE server to be available when the app/container is first started and fails if otherwise. On startup it makes initial API calls to collect corpus information. Once those calls are cached, having server access isn't technically required to view cached queries.
 
@@ -87,7 +87,7 @@ preloaded/susanne:
 
 ### Trying out the app
 
-Once `.env` and the YAML configuration file are ready, start the app and make a query, for example `with; without`. Two bar graphs will appear showing frequencies in the Susanne corpus in several text types. There's currently a page for making queries, one for inspecting corpora, and a user guide.
+Once `.env` and the YAML configuration file are ready, start the app and make a query, for example `with; without`. Two bar graphs will appear showing frequencies in the Susanne corpus in several text types. The app currently has a page for making queries, one for inspecting corpora, and a user guide.
 
 ![image](/quartz-app.png)
 
@@ -95,11 +95,11 @@ Quartz can be used without much knowledge of corpus linguistics, but a range of 
 
 ### Development
 
-API-based data collection requires understanding the [Sketch Grammar Explorer](https://github.com/engisalor/sketch-grammar-explorer) package (SGEX, a Sketch Engine API wrapper); try it out as a standalone tool if you plan on doing custom data processing. Also see [/components/freqs_fig.py](/components/freqs_fig.py) for examples of how to make custom visualizations.
+API-based data collection requires understanding the [Sketch Grammar Explorer](https://github.com/engisalor/sketch-grammar-explorer) package (SGEX, a Sketch Engine API wrapper); try it out as a standalone tool if you plan on doing custom data processing. Also see [/components/freqs_fig.py](/components/freqs_fig.py) for examples of how to write custom visualizations with Plotly and SkE API data.
 
 ## About
 
-Quartz was developed with funding from the [Humanitarian Encyclopedia](https://humanitarianencyclopedia.org) and support from the University of Granada [LexiCon research group](http://lexicon.ugr.es). It's the upstream repository for the [Humanitarian Encyclopedia Dashboard](https://humanitarianencyclopedia.org/analysis) ([GitHub repo](https://github.com/Humanitarian-Encyclopedia/he-dashboard)). If you're interested in the Dashboard or studying humanitarian discourse, make a free account at the Encyclopedia to try it out.
+Quartz was developed as part of work at the [Humanitarian Encyclopedia](https://humanitarianencyclopedia.org) in coordination with the University of Granada [LexiCon research group](http://lexicon.ugr.es). It's the upstream repository for the [Humanitarian Encyclopedia Dashboard](https://humanitarianencyclopedia.org/analysis) ([source code](https://github.com/Humanitarian-Encyclopedia/he-dashboard)). If you're interested in the Dashboard or studying humanitarian discourse, make a free account at the Encyclopedia to try it out.
 
 Quartz relies on APIs made available thanks to the work of [Lexical Computing](https://www.lexicalcomputing.com/) and [Sketch Engine contributors](https://www.sketchengine.eu/bibliography-of-sketch-engine/). The [Docker image](https://github.com/ELTE-DH/NoSketch-Engine-Docker) from Eötvös Loránd University Department of Digital Humanities is also quite helpful.
 
@@ -109,4 +109,18 @@ The name Quartz is a nod to Sketch Engine's GUI, Crystal.
 
 ## Citation
 
-If you use Quartz, please [cite it](/CITATION.cff).
+See [this article](https://doi.org/10.3390/languages9030000) (final citation data awaiting publication):
+
+```bibtex
+@article{isaacsQuartzTemplateQuantitative2024,
+	author = {Isaacs, Loryn and Odlum, Alex and León-Araúz, Pilar},
+	title = {Quartz: {A} template for quantitative corpus data visualization tools},
+	journal = {Languages},
+	volume = {9},
+	number = {0},
+	doi = {https://doi.org/10.3390/languages9030000},
+	year = {2024},
+}
+```
+
+To cite Quartz as software, see [CITATION.cff](/CITATION.cff).
