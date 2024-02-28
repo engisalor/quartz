@@ -109,7 +109,7 @@ The name Quartz is a nod to Sketch Engine's GUI, Crystal.
 
 ## Citation
 
-See [this article](https://doi.org/10.3390/languages9030000) (final citation data awaiting publication):
+See [this article](https://doi.org/10.3390/languages9030081):
 
 ```bibtex
 @article{isaacsQuartzTemplateQuantitative2024,
@@ -117,8 +117,8 @@ See [this article](https://doi.org/10.3390/languages9030000) (final citation dat
 	title = {Quartz: {A} template for quantitative corpus data visualization tools},
 	journal = {Languages},
 	volume = {9},
-	number = {0},
-	doi = {https://doi.org/10.3390/languages9030000},
+	number = {81},
+	doi = {https://doi.org/10.3390/languages9030081},
 	year = {2024},
 }
 ```
