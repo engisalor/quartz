@@ -113,13 +113,12 @@ See [this article](https://doi.org/10.3390/languages9030081):
 
 ```bibtex
 @article{isaacsQuartzTemplateQuantitative2024,
-	author = {Isaacs, Loryn and Odlum, Alex and León-Araúz, Pilar},
 	title = {Quartz: {A} template for quantitative corpus data visualization tools},
-	journal = {Languages},
 	volume = {9},
-	number = {81},
-	doi = {https://doi.org/10.3390/languages9030081},
-	year = {2024},
+	doi = {10.3390/languages9030081},
+	number = {(3):81},
+	journal = {Languages},
+	author = {Isaacs, Loryn and Odlum, Alex and León-Araúz, Pilar},
 }
 ```
 
