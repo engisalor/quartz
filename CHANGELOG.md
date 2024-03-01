@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.3.2](https://github.com/engisalor/quartz/compare/v0.3.1...v0.3.2) (2024-02-28)
+
+
+### Bug Fixes
+
+* add sorting env variable ([1924462](https://github.com/engisalor/quartz/commit/19244621f99a8f855978155edbebbf85fdd18096))
+* add sorting, page n to query func, app layout ([6cab30e](https://github.com/engisalor/quartz/commit/6cab30e106618753ee8e6292cac50be36c1de634))
+* add sorting, page to fig functions, update annotations ([cd4cfb4](https://github.com/engisalor/quartz/commit/cd4cfb449eff652543a3824693dec696c5cbc056))
+* update user guide ([d11061f](https://github.com/engisalor/quartz/commit/d11061f068a75dd0b705e7dc35e9ff05f683f742))
+* url filters needed ske escaping ([59d189a](https://github.com/engisalor/quartz/commit/59d189a1cfad86090dd643aa54de3594dfb77be5))
+
+
+### Documentation
+
+* add sample size warning to guide ([fea8a38](https://github.com/engisalor/quartz/commit/fea8a38e6dc91e303037d4aa59a193b44728b1cb))
+* update readme ([2c5b76c](https://github.com/engisalor/quartz/commit/2c5b76c73dcfe17358e376391369e118ef7bf01a))
+* update readme ([1b19042](https://github.com/engisalor/quartz/commit/1b19042a8f16f017eb094d7a27829e06b60c19e5))
+* update readme ([16cd702](https://github.com/engisalor/quartz/commit/16cd70229c0b2e147665f5542024ce84839ed86c))
+
 ## [0.3.1](https://github.com/engisalor/quartz/compare/v0.3.0...v0.3.1) (2023-12-04)
 
 
